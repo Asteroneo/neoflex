@@ -15,8 +15,10 @@ contract NeoFlexCore is ReentrancyGuard, Pausable, Ownable {
 
     uint256 public totalStaked;
     uint256 public constant UNSTAKE_PERIOD = 2 weeks;
+    uint256 public constant EPOCH_DURATION = 7 days;
     address public currentValidator;
     uint256 public lastRewardClaim;
+    uint256 public lastVoteTimestamp;
     uint256 public accumulatedRewards;
 
     event Deposited(address indexed user, uint256 gasAmount, uint256 xGasAmount);
@@ -24,27 +26,60 @@ contract NeoFlexCore is ReentrancyGuard, Pausable, Ownable {
     event Withdrawn(address indexed user, uint256 gasAmount);
     event ValidatorUpdated(address indexed newValidator);
     event RewardsHarvested(uint256 amount);
+    event GovernanceContractUpdated(address indexed oldGovernance, address indexed newGovernance);
+    event DebugLog(string message, uint256 value);
+    event ErrorLog(string message, string reason);
 
-    constructor(address _governanceContract, address _xGASToken, address _unstakeNFT) {
+    constructor(address _governanceContract, address _currentValidator, address _xGASToken, address _unstakeNFT) {
+        require(_governanceContract != address(0), "Invalid governance contract address");
+        require(_currentValidator != address(0), "Invalid validator address");
+        require(_xGASToken != address(0), "Invalid xGASToken address");
+        require(_unstakeNFT != address(0), "Invalid unstakeNFT address");
+
         xGASToken = XGASToken(_xGASToken);
         governanceContract = INeoXGovernance(_governanceContract);
+        currentValidator = _currentValidator;
         unstakeNFT = UnstakeNFT(_unstakeNFT);
         lastRewardClaim = block.timestamp;
+
+        // Initial vote for the current validator
+        if (address(this).balance > 0) {
+            governanceContract.vote{value: address(this).balance}(_currentValidator);
+        }
     }
 
+
     function deposit() external payable nonReentrant whenNotPaused {
-        harvestRewards();
         require(msg.value > 0, "Deposit amount must be greater than 0");
+
+        if (lastVoteTimestamp == 0) {
+            lastVoteTimestamp = block.timestamp;
+        } else {
+            harvestRewards(); // This will only claim if an epoch has passed
+        }
 
         uint256 xGasToMint = getGasToXGasRatio(msg.value);
         totalStaked += msg.value;
 
-        xGASToken.mint(msg.sender, xGasToMint);
+        try xGASToken.mint(msg.sender, xGasToMint) {
+            emit DebugLog("xGAS minted successfully", xGasToMint);
+        } catch Error(string memory reason) {
+            emit ErrorLog("xGAS minting failed", reason);
+            revert("xGAS minting failed");
+        }
 
         emit Deposited(msg.sender, msg.value, xGasToMint);
 
         if (currentValidator != address(0)) {
-            governanceContract.vote{value: msg.value}(currentValidator);
+            try governanceContract.vote{value: msg.value}(currentValidator) {
+                lastVoteTimestamp = block.timestamp;
+                emit DebugLog("Vote successful", msg.value);
+            } catch Error(string memory reason) {
+                emit ErrorLog("Voting failed", reason);
+                revert("Voting failed");
+            }
+        } else {
+            emit DebugLog("No validator set", 0);
         }
     }
 
@@ -77,14 +112,20 @@ contract NeoFlexCore is ReentrancyGuard, Pausable, Ownable {
         emit Withdrawn(msg.sender, request.amount);
     }
 
+
     function harvestRewards() public {
-        if (block.timestamp > lastRewardClaim) {
-            uint256 balanceBefore = address(this).balance;
-            governanceContract.claimReward();
+        require(block.timestamp >= lastVoteTimestamp + EPOCH_DURATION, "Rewards not yet claimable");
+        
+        uint256 balanceBefore = address(this).balance;
+        
+        try governanceContract.claimReward() {
             uint256 newRewards = address(this).balance - balanceBefore;
             accumulatedRewards += newRewards;
             lastRewardClaim = block.timestamp;
             emit RewardsHarvested(newRewards);
+        } catch Error(string memory reason) {
+            emit ErrorLog("Claim reward failed", reason);
+            // Decide if you want to revert here or just log the error
         }
     }
 
@@ -111,6 +152,17 @@ contract NeoFlexCore is ReentrancyGuard, Pausable, Ownable {
         currentValidator = newValidator;
         
         emit ValidatorUpdated(newValidator);
+    }
+
+    
+    function updateGovernanceContract(address _newGovernanceContract) external onlyOwner {
+        require(_newGovernanceContract != address(0), "New governance contract address cannot be zero");
+        require(_newGovernanceContract != address(governanceContract), "New address must be different from current");
+
+        address oldGovernanceContract = address(governanceContract);
+        governanceContract = INeoXGovernance(_newGovernanceContract);
+
+        emit GovernanceContractUpdated(oldGovernanceContract, _newGovernanceContract);
     }
 
     function pause() external onlyOwner {
