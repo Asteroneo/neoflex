@@ -16,7 +16,7 @@ type TSidebarItemProps = {
 };
 function Sidebar() {
   return (
-    <div className="w-64 bg-opacity-50 p-6 flex flex-col h-5/6 h-[95%] mt-6 mx-6 rounded-xl border border-white">
+    <div className="w-64 bg-opacity-50 border-2 p-6 flex flex-col h-5/6 h-[95%] mt-6 mx-6 rounded-xl border-opacity-70 border-white">
       <div className="flex items-center justify-center mb-12">
         <IconSparkles className="w-8 h-8 text-[#79FFB8]" stroke={2} />
         <h1 className="text-3xl font-extralight ml-2">Euclid</h1>
@@ -38,7 +38,7 @@ function Sidebar() {
 function SidebarItem({ icon: Icon, text, active = false }: TSidebarItemProps) {
   return (
     <div
-      className={`flex items-center p-2 rounded-lg ${
+      className={`flex items-center p-2 rounded-lg  ${
         active
           ? "bg-gray-800 bg-opacity-50"
           : "hover:bg-gray-800 hover:bg-opacity-50"
@@ -50,7 +50,7 @@ function SidebarItem({ icon: Icon, text, active = false }: TSidebarItemProps) {
         }`}
         strokeWidth={1}
       />
-      <span className={`font-extralight ${active ? "text-[#79FFB8]" : ""}`}>
+      <span className={`font-semibold ${active ? "text-[#79FFB8]" : ""}`}>
         {text}
       </span>
     </div>

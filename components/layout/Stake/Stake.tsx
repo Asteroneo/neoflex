@@ -16,8 +16,8 @@ type TListItem = {
 
 export default function Stake() {
   return (
-    <div className=" bg-opacity-50 rounded-3xl shadow-lg overflow-hidden flex gap-3 border border-white">
-      <div className="w-1/2 border-r border-white">
+    <div className="max-w-7xl min-w-[1100px] bg-opacity-50 rounded-3xl shadow-lg overflow-hidden flex gap-3 border-2 border-white border-opacity-30">
+      <div className="w-1/2 relative before:absolute before:top-0 before:bottom-0 before:right-0 before:w-px before:bg-gradient-to-b before:from-transparent before:via-white before:to-transparent before:opacity-50">
         <StakeTab />
       </div>
 

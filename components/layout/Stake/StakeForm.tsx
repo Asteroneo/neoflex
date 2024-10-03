@@ -50,19 +50,21 @@ export default function StakeForm({ activeTab }: TStakeFormProps) {
           name="amount"
           render={({ field }) => (
             <FormItem>
-              <FormLabel className="font-normal pl-1">{fromLabel}</FormLabel>
+              <FormLabel className="font-normal text-base font-semibold pl-1">
+                {fromLabel}
+              </FormLabel>
               <FormControl>
                 <Input
                   type="number"
                   {...field}
-                  className="rounded-full no-spinner"
+                  className="rounded-full no-spinner p-6"
                   icon={<IconSparkles stroke={2} />}
                   placeholderText={fromPlaceholder}
                 />
               </FormControl>
               <div className="h-2" />
               <div className="flex justify-between pl-1">
-                <FormDescription>
+                <FormDescription className="opacity-50">
                   BALANCE: 0.00 {fromPlaceholder}
                 </FormDescription>
                 <div className="flex items-center gap-3">
@@ -86,7 +88,6 @@ export default function StakeForm({ activeTab }: TStakeFormProps) {
             </FormItem>
           )}
         />
-        <div className="h-2" />
         <div className="flex w-full justify-center">
           <div className="flex justify-center items-center rounded-full bg-[#79FFB8] w-10 h-10">
             <IconArrowDown stroke={2} className="text-black" />
@@ -97,12 +98,14 @@ export default function StakeForm({ activeTab }: TStakeFormProps) {
           name="amount"
           render={({ field }) => (
             <FormItem>
-              <FormLabel className="font-normal pl-1">{toLabel}</FormLabel>
+              <FormLabel className=" text-base font-semibold pl-1">
+                {toLabel}
+              </FormLabel>
               <FormControl>
                 <Input
                   type="number"
                   {...field}
-                  className="rounded-full no-spinner"
+                  className="rounded-full no-spinner p-6"
                   icon={<IconSparkles stroke={2} />}
                   placeholderText={toPlaceholder}
                 />
@@ -113,18 +116,18 @@ export default function StakeForm({ activeTab }: TStakeFormProps) {
             </FormItem>
           )}
         />
-        <div className="space-y-4 mb-8">
+        <div className="space-y-2 mb-8">
           <div className="flex justify-between text-sm font-extralight">
             <span className="text-gray-400">Transaction Cost</span>
-            <span>14,103.281212 EUCL</span>
+            <span className="font-medium">14,103.281212 EUCL</span>
           </div>
           <div className="flex justify-between text-sm font-extralight">
             <span className="text-gray-400">Redemption Rate</span>
-            <span>1 VSL = 1.243222 eEUCL</span>
+            <span className="font-medium">1 VSL = 1.243222 eEUCL</span>
           </div>
           <div className="flex justify-between text-sm font-extralight">
             <span className="text-gray-400">Unbonding Period</span>
-            <span>7 days</span>
+            <span className="font-medium">14 days</span>
           </div>
         </div>
         <Button type="submit" className="w-full bg-[#79FFB8] text-black h-12">

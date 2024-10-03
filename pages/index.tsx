@@ -49,8 +49,7 @@ export default function Home() {
           <ConnectButton />
         </div>
 
-        <div className="flex-1 px-20">
-          <div className="h-24" />
+        <div className="flex-1 flex items-center justify-center">
           <Stake />
         </div>
       </div>
