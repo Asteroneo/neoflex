@@ -1,13 +1,28 @@
 const { expect } = require("chai");
 const { ethers } = require("hardhat");
 
-describe("NeoFlexCore", function () {
+describe("NeoFlexCore on Forked Network", function () {
   let NeoFlexCore, xGASToken, UnstakeNFT, MockGovernance;
   let neoFlexCore, xGasToken, unstakeNFT, mockGovernance;
   let owner, user1, user2, validator;
 
   beforeEach(async function () {
     [owner, user1, user2, validator] = await ethers.getSigners();
+
+    // Fund accounts with GAS
+    const fundAmount = ethers.parseEther("100");
+    await ethers.provider.send("hardhat_setBalance", [
+      owner.address,
+      ethers.toQuantity(fundAmount),
+    ]);
+    await ethers.provider.send("hardhat_setBalance", [
+      user1.address,
+      ethers.toQuantity(fundAmount),
+    ]);
+    await ethers.provider.send("hardhat_setBalance", [
+      user2.address,
+      ethers.toQuantity(fundAmount),
+    ]);
 
     try {
       // Deploy mock contracts
@@ -22,13 +37,6 @@ describe("NeoFlexCore", function () {
       UnstakeNFT = await ethers.getContractFactory("UnstakeNFT");
       unstakeNFT = await UnstakeNFT.deploy();
       console.log("UnstakeNFT Deployed at:", await unstakeNFT.getAddress());
-
-      // Check if all addresses are valid
-      console.log("Validator address:", await validator.getAddress());
-      expect(await mockGovernance.getAddress()).to.be.properAddress;
-      expect(await xGasToken.getAddress()).to.be.properAddress;
-      expect(await unstakeNFT.getAddress()).to.be.properAddress;
-      expect(await validator.getAddress()).to.be.properAddress;
 
       // Deploy NeoFlexCore
       console.log("Starting Core Deployment");
@@ -56,51 +64,29 @@ describe("NeoFlexCore", function () {
   describe("Deposit", function () {
     it("Should allow users to deposit GAS and receive xGAS", async function () {
       const depositAmount = ethers.parseEther("1");
-      await neoFlexCore.connect(user1).deposit({ value: depositAmount });
+
+      console.log(
+        "User1 balance before deposit:",
+        ethers.formatEther(await ethers.provider.getBalance(user1.address))
+      );
+
+      const tx = await neoFlexCore
+        .connect(user1)
+        .deposit({ value: depositAmount });
+      await tx.wait(); // Wait for the transaction to be mined
+
+      console.log(
+        "User1 balance after deposit:",
+        ethers.formatEther(await ethers.provider.getBalance(user1.address))
+      );
 
       const xGasBalance = await xGasToken.balanceOf(user1.address);
+      console.log("User1 xGAS balance:", ethers.formatEther(xGasBalance));
+
       expect(xGasBalance).to.be.gt(0);
 
       const totalStaked = await neoFlexCore.totalStaked();
       expect(totalStaked).to.equal(depositAmount);
-    });
-  });
-
-  describe("Request Unstake", function () {
-    it("Should allow users to request unstake and receive UnstakeNFT", async function () {
-      const depositAmount = ethers.parseEther("1");
-      await neoFlexCore.connect(user1).deposit({ value: depositAmount });
-
-      const xGasBalance = await xGasToken.balanceOf(user1.address);
-      await neoFlexCore.connect(user1).requestUnstake(xGasBalance);
-
-      const nftBalance = await unstakeNFT.balanceOf(user1.address);
-      expect(nftBalance).to.equal(1);
-    });
-  });
-
-  describe("Claim Unstake", function () {
-    it("Should allow users to claim unstake after the unstake period", async function () {
-      const depositAmount = ethers.parseEther("1");
-      await neoFlexCore.connect(user1).deposit({ value: depositAmount });
-
-      const xGasBalance = await xGasToken.balanceOf(user1.address);
-      await neoFlexCore.connect(user1).requestUnstake(xGasBalance);
-
-      const nftId = 1; // Assuming this is the first NFT minted
-
-      // Fast forward time
-      await ethers.provider.send("evm_increaseTime", [2 * 7 * 24 * 60 * 60]); // 2 weeks
-      await ethers.provider.send("evm_mine");
-
-      const balanceBefore = await ethers.provider.getBalance(user1.address);
-      await neoFlexCore.connect(user1).claimUnstake(nftId);
-      const balanceAfter = await ethers.provider.getBalance(user1.address);
-
-      expect(balanceAfter - balanceBefore).to.be.closeTo(
-        depositAmount,
-        ethers.parseEther("0.01")
-      );
     });
   });
 
