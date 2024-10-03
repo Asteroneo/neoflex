@@ -1,9 +1,9 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.1;
 
-import "@openzeppelin/contracts@4.9.0/token/ERC721/ERC721.sol";
-import "@openzeppelin/contracts@4.9.0/access/Ownable.sol";
-import "@openzeppelin/contracts@4.9.0/utils/Counters.sol";
+import "@openzeppelin/contracts/token/ERC721/ERC721.sol";
+import "@openzeppelin/contracts/access/Ownable.sol";
+import "@openzeppelin/contracts/utils/Counters.sol";
 
 contract UnstakeNFT is ERC721, Ownable {
     using Counters for Counters.Counter;

@@ -7,6 +7,7 @@ const PRIVATE_KEY = process.env.PRIVATE_KEY;
 module.exports = {
   solidity: "0.8.1",
   networks: {
+    hardhat: {}, // Add this for local testing
     neoxTestnet: {
       url: "https://neoxt4seed1.ngd.network",
       chainId: 12227332,

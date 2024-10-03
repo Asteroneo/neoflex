@@ -1,126 +1,108 @@
-const {
-  time,
-  loadFixture,
-} = require("@nomicfoundation/hardhat-toolbox/network-helpers");
-const { anyValue } = require("@nomicfoundation/hardhat-chai-matchers/withArgs");
 const { expect } = require("chai");
+const { ethers } = require("hardhat");
 
-describe("Lock", function () {
-  // We define a fixture to reuse the same setup in every test.
-  // We use loadFixture to run this setup once, snapshot that state,
-  // and reset Hardhat Network to that snapshot in every test.
-  async function deployOneYearLockFixture() {
-    const ONE_YEAR_IN_SECS = 365 * 24 * 60 * 60;
-    const ONE_GWEI = 1_000_000_000;
+describe("NeoFlexCore", function () {
+  let NeoFlexCore, xGASToken, UnstakeNFT, MockGovernance;
+  let neoFlexCore, xGasToken, unstakeNFT, mockGovernance;
+  let owner, user1, user2, validator;
 
-    const lockedAmount = ONE_GWEI;
-    const unlockTime = (await time.latest()) + ONE_YEAR_IN_SECS;
+  beforeEach(async function () {
+    [owner, user1, user2, validator] = await ethers.getSigners();
 
-    // Contracts are deployed using the first signer/account by default
-    const [owner, otherAccount] = await ethers.getSigners();
+    try {
+      // Deploy mock contracts
+      MockGovernance = await ethers.getContractFactory("MockGovernance");
+      mockGovernance = await MockGovernance.deploy();
+      console.log("Governance Deployed at:", await mockGovernance.getAddress());
 
-    const Lock = await ethers.getContractFactory("Lock");
-    const lock = await Lock.deploy(unlockTime, { value: lockedAmount });
+      XGASToken = await ethers.getContractFactory("XGASToken");
+      xGasToken = await XGASToken.deploy();
+      console.log("XGAS Deployed at:", await xGasToken.getAddress());
 
-    return { lock, unlockTime, lockedAmount, owner, otherAccount };
-  }
+      UnstakeNFT = await ethers.getContractFactory("UnstakeNFT");
+      unstakeNFT = await UnstakeNFT.deploy();
+      console.log("UnstakeNFT Deployed at:", await unstakeNFT.getAddress());
 
-  describe("Deployment", function () {
-    it("Should set the right unlockTime", async function () {
-      const { lock, unlockTime } = await loadFixture(deployOneYearLockFixture);
+      // Check if all addresses are valid
+      console.log("Validator address:", await validator.getAddress());
+      expect(await mockGovernance.getAddress()).to.be.properAddress;
+      expect(await xGasToken.getAddress()).to.be.properAddress;
+      expect(await unstakeNFT.getAddress()).to.be.properAddress;
+      expect(await validator.getAddress()).to.be.properAddress;
 
-      expect(await lock.unlockTime()).to.equal(unlockTime);
-    });
-
-    it("Should set the right owner", async function () {
-      const { lock, owner } = await loadFixture(deployOneYearLockFixture);
-
-      expect(await lock.owner()).to.equal(owner.address);
-    });
-
-    it("Should receive and store the funds to lock", async function () {
-      const { lock, lockedAmount } = await loadFixture(
-        deployOneYearLockFixture
+      // Deploy NeoFlexCore
+      console.log("Starting Core Deployment");
+      NeoFlexCore = await ethers.getContractFactory("NeoFlexCore");
+      neoFlexCore = await NeoFlexCore.deploy(
+        await mockGovernance.getAddress(),
+        await validator.getAddress(),
+        await xGasToken.getAddress(),
+        await unstakeNFT.getAddress()
       );
+      console.log("Core Deployed at:", await neoFlexCore.getAddress());
 
-      expect(await ethers.provider.getBalance(lock.target)).to.equal(
-        lockedAmount
-      );
+      // Set NeoFlexCore as operator for xGASToken and UnstakeNFT
+      await xGasToken.transferOperator(await neoFlexCore.getAddress());
+      console.log("Operator Updated for xGas");
+
+      await unstakeNFT.transferOperator(await neoFlexCore.getAddress());
+      console.log("Operator Updated for NFT");
+    } catch (error) {
+      console.error("Error in beforeEach:", error);
+      throw error;
+    }
+  });
+
+  describe("Deposit", function () {
+    it("Should allow users to deposit GAS and receive xGAS", async function () {
+      const depositAmount = ethers.parseEther("1");
+      await neoFlexCore.connect(user1).deposit({ value: depositAmount });
+
+      const xGasBalance = await xGasToken.balanceOf(user1.address);
+      expect(xGasBalance).to.be.gt(0);
+
+      const totalStaked = await neoFlexCore.totalStaked();
+      expect(totalStaked).to.equal(depositAmount);
     });
+  });
 
-    it("Should fail if the unlockTime is not in the future", async function () {
-      // We don't use the fixture here because we want a different deployment
-      const latestTime = await time.latest();
-      const Lock = await ethers.getContractFactory("Lock");
-      await expect(Lock.deploy(latestTime, { value: 1 })).to.be.revertedWith(
-        "Unlock time should be in the future"
+  describe("Request Unstake", function () {
+    it("Should allow users to request unstake and receive UnstakeNFT", async function () {
+      const depositAmount = ethers.parseEther("1");
+      await neoFlexCore.connect(user1).deposit({ value: depositAmount });
+
+      const xGasBalance = await xGasToken.balanceOf(user1.address);
+      await neoFlexCore.connect(user1).requestUnstake(xGasBalance);
+
+      const nftBalance = await unstakeNFT.balanceOf(user1.address);
+      expect(nftBalance).to.equal(1);
+    });
+  });
+
+  describe("Claim Unstake", function () {
+    it("Should allow users to claim unstake after the unstake period", async function () {
+      const depositAmount = ethers.parseEther("1");
+      await neoFlexCore.connect(user1).deposit({ value: depositAmount });
+
+      const xGasBalance = await xGasToken.balanceOf(user1.address);
+      await neoFlexCore.connect(user1).requestUnstake(xGasBalance);
+
+      const nftId = 1; // Assuming this is the first NFT minted
+
+      // Fast forward time
+      await ethers.provider.send("evm_increaseTime", [2 * 7 * 24 * 60 * 60]); // 2 weeks
+      await ethers.provider.send("evm_mine");
+
+      const balanceBefore = await ethers.provider.getBalance(user1.address);
+      await neoFlexCore.connect(user1).claimUnstake(nftId);
+      const balanceAfter = await ethers.provider.getBalance(user1.address);
+
+      expect(balanceAfter - balanceBefore).to.be.closeTo(
+        depositAmount,
+        ethers.parseEther("0.01")
       );
     });
   });
 
-  describe("Withdrawals", function () {
-    describe("Validations", function () {
-      it("Should revert with the right error if called too soon", async function () {
-        const { lock } = await loadFixture(deployOneYearLockFixture);
-
-        await expect(lock.withdraw()).to.be.revertedWith(
-          "You can't withdraw yet"
-        );
-      });
-
-      it("Should revert with the right error if called from another account", async function () {
-        const { lock, unlockTime, otherAccount } = await loadFixture(
-          deployOneYearLockFixture
-        );
-
-        // We can increase the time in Hardhat Network
-        await time.increaseTo(unlockTime);
-
-        // We use lock.connect() to send a transaction from another account
-        await expect(lock.connect(otherAccount).withdraw()).to.be.revertedWith(
-          "You aren't the owner"
-        );
-      });
-
-      it("Shouldn't fail if the unlockTime has arrived and the owner calls it", async function () {
-        const { lock, unlockTime } = await loadFixture(
-          deployOneYearLockFixture
-        );
-
-        // Transactions are sent using the first signer by default
-        await time.increaseTo(unlockTime);
-
-        await expect(lock.withdraw()).not.to.be.reverted;
-      });
-    });
-
-    describe("Events", function () {
-      it("Should emit an event on withdrawals", async function () {
-        const { lock, unlockTime, lockedAmount } = await loadFixture(
-          deployOneYearLockFixture
-        );
-
-        await time.increaseTo(unlockTime);
-
-        await expect(lock.withdraw())
-          .to.emit(lock, "Withdrawal")
-          .withArgs(lockedAmount, anyValue); // We accept any value as `when` arg
-      });
-    });
-
-    describe("Transfers", function () {
-      it("Should transfer the funds to the owner", async function () {
-        const { lock, unlockTime, lockedAmount, owner } = await loadFixture(
-          deployOneYearLockFixture
-        );
-
-        await time.increaseTo(unlockTime);
-
-        await expect(lock.withdraw()).to.changeEtherBalances(
-          [owner, lock],
-          [lockedAmount, -lockedAmount]
-        );
-      });
-    });
-  });
+  // ... rest of the test cases ...
 });
