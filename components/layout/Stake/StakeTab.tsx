@@ -1,9 +1,15 @@
+// File: components\layout\Stake\StakeTab.tsx
+
 import { cn } from "@/utils";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "../../ui/tab";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "../../ui/Tab";
 import StakeForm from "./StakeForm";
 import { useState } from "react";
 
-export default function StakeTab() {
+interface StakeTabProps {
+  gasToXGasRatio: string | null;
+}
+
+export default function StakeTab({ gasToXGasRatio }: StakeTabProps) {
   const [activeTab, setActiveTab] = useState("stake");
 
   return (
@@ -39,11 +45,11 @@ export default function StakeTab() {
       </TabsList>
       <TabsContent value="stake">
         <div className="h-6" />
-        <StakeForm activeTab={activeTab} />
+        <StakeForm activeTab={activeTab} gasToXGasRatio={gasToXGasRatio} />
       </TabsContent>
       <TabsContent value="unstake">
         <div className="h-6" />
-        <StakeForm activeTab={activeTab} />
+        <StakeForm activeTab={activeTab} gasToXGasRatio={gasToXGasRatio} />
       </TabsContent>
     </Tabs>
   );

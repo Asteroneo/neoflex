@@ -1,3 +1,5 @@
+// File: pages\examples\mint-nft.tsx
+
 import {
 	useAccount,
 	useContractWrite,

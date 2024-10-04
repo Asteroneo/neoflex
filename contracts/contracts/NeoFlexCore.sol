@@ -57,7 +57,7 @@ contract NeoFlexCore is ReentrancyGuard, Pausable, Ownable {
             lastVoteTimestamp = block.timestamp;
             emit DebugLog("First deposit, setting lastVoteTimestamp", lastVoteTimestamp);
         } else {
-            harvestRewards(); // This will only claim if an epoch has passed
+            bool rewardsHarvested = harvestRewards();
             if (rewardsHarvested) {
                 emit DebugLog("Rewards harvested during deposit", 0);
             } else {

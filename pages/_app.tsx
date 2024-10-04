@@ -1,3 +1,5 @@
+// File: pages\_app.tsx
+
 import type { AppProps } from "next/app";
 import Web3Provider from "@/providers/Web3";
 import { SEO } from "@/components/layout";

@@ -1,3 +1,5 @@
+// File: pages\index.tsx
+
 import Image from "next/image";
 import Head from "next/head";
 import { ConnectButton } from "@rainbow-me/rainbowkit";
@@ -8,10 +10,24 @@ import Sidebar from "@/components/layout/Sidebar";
 import Stake from "@/components/layout/Stake/Stake";
 import { TransactionProvider } from "@/contexts/TransactionContext";
 import { Toaster } from "react-hot-toast";
+import { GetServerSideProps } from "next";
+import { getGasToXGasRatio } from "@/utils/getContractData";
 
-const inter = Inter({ subsets: ["latin"] });
+export const getServerSideProps: GetServerSideProps = async () => {
+  const gasToXGasRatio = await getGasToXGasRatio();
 
-export default function Home() {
+  return {
+    props: {
+      gasToXGasRatio,
+    },
+  };
+};
+
+interface HomeProps {
+  gasToXGasRatio: string | null;
+}
+
+export default function Home({ gasToXGasRatio }: HomeProps) {
   const origin =
     typeof window !== "undefined" && window.location.origin
       ? window.location.origin
@@ -42,6 +58,7 @@ export default function Home() {
       href: `${origin}/examples`,
     },
   ];
+
   return (
     <TransactionProvider>
       <div className="h-screen flex overflow-hidden">
@@ -53,7 +70,7 @@ export default function Home() {
           </div>
 
           <div className="flex-1 flex items-center justify-center">
-            <Stake />
+            <Stake gasToXGasRatio={gasToXGasRatio} />
           </div>
         </div>
         <Toaster position="bottom-right" />

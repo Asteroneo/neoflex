@@ -1,3 +1,5 @@
+// File: components\layout\Sidebar.tsx
+
 import React from "react";
 import {
   IconBox,
@@ -19,7 +21,7 @@ function Sidebar() {
     <div className="w-64 bg-opacity-50 border-2 p-6 flex flex-col h-5/6 h-[95%] mt-6 mx-6 rounded-xl border-opacity-70 border-white">
       <div className="flex items-center justify-center mb-12">
         <IconSparkles className="w-8 h-8 text-[#79FFB8]" stroke={2} />
-        <h1 className="text-3xl font-extralight ml-2">Euclid</h1>
+        <h1 className="text-3xl font-extralight ml-2">NeoFlex</h1>
       </div>
       <nav className="flex-grow space-y-6">
         <SidebarItem icon={IconLock} text="Staking" active />
@@ -29,7 +31,7 @@ function Sidebar() {
         <SidebarItem icon={IconBuildingBank} text="Governance" />
       </nav>
       <div className="text-xs text-gray-500 mt-auto text-center">
-        Powered By Euclid Protocol
+        Powered By NeoFlex Protocol
       </div>
     </div>
   );

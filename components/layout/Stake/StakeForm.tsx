@@ -1,3 +1,5 @@
+// File: components\layout\Stake\StakeForm.tsx
+
 import React, { useState, useEffect } from "react";
 import { Button } from "@/components/ui/Button";
 import {
@@ -15,29 +17,38 @@ import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { IconArrowDown, IconSparkles } from "@tabler/icons-react";
 import { useAccount, usePublicClient } from "wagmi";
-import { formatEther } from "viem";
 import { useSmartContract } from "@/helpers/useCoreContract";
 import { useTransaction } from "@/contexts/TransactionContext";
+import { useBalance } from "@/utils/fetchBalance"; // Import the improved hook
 
 type TStakeFormProps = {
   activeTab: string;
+  gasToXGasRatio: string | null;
 };
 
 const formSchema = z.object({
   amount: z
     .number()
     .min(1, { message: "Amount must be at least 1" })
-    .multipleOf(0.01, { message: "Amount must be a multiple of 0.1" }),
+    .multipleOf(0.1, { message: "Amount must be a multiple of 0.1" }),
 });
 
-export default function StakeForm({ activeTab }: TStakeFormProps) {
-  const { address } = useAccount();
+export default function StakeForm({
+  activeTab,
+  gasToXGasRatio,
+}: TStakeFormProps) {
   const { setStatus } = useTransaction();
-  const publicClient = usePublicClient();
-  const { useDeposit, useGasToXGasRatio } = useSmartContract();
-  const [balance, setBalance] = useState<string>("0");
-  const [mounted, setMounted] = useState(false);
-  const [ratioDisplay, setRatioDisplay] = useState<string>("Loading...");
+  const { useDeposit } = useSmartContract();
+  const {
+    balance: gasBalance,
+    isLoading: isGasLoading,
+    error: gasError,
+  } = useBalance(); // Use the hook for GAS balance
+  const {
+    balance: xGasBalance,
+    isLoading: isXGasLoading,
+    error: xGasError,
+  } = useBalance(process.env.NEXT_PUBLIC_XGAS_ADDRESS as `0x${string}`); // Ensure the address is in the correct format
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -50,45 +61,6 @@ export default function StakeForm({ activeTab }: TStakeFormProps) {
 
   const { write, isWriteLoading, isTransactionLoading, isSuccess } =
     useDeposit(amount);
-  const {
-    ratio,
-    isError: isRatioError,
-    isLoading: isRatioLoading,
-  } = useGasToXGasRatio();
-
-  useEffect(() => {
-    setMounted(true);
-  }, []);
-
-  useEffect(() => {
-    if (mounted) {
-      if (isRatioLoading) {
-        setRatioDisplay("Loading...");
-      } else if (isRatioError) {
-        setRatioDisplay("Error fetching ratio");
-      } else if (typeof ratio === "bigint") {
-        setRatioDisplay(`1 GAS = ${formatEther(ratio)} xGAS`);
-      } else {
-        setRatioDisplay("N/A");
-      }
-    }
-  }, [mounted, isRatioLoading, isRatioError, ratio]);
-
-  const getBalance = async (address: `0x${string}`) => {
-    const balance = await publicClient.getBalance({ address });
-    return formatEther(balance);
-  };
-
-  useEffect(() => {
-    async function fetchBalance() {
-      if (address && mounted) {
-        const fetchedBalance = await getBalance(address);
-        setBalance(fetchedBalance);
-      }
-    }
-
-    fetchBalance();
-  }, [address, mounted]);
 
   const onSubmit = async (formData: z.infer<typeof formSchema>) => {
     if (!write) {
@@ -159,7 +131,7 @@ export default function StakeForm({ activeTab }: TStakeFormProps) {
               <div className="h-2" />
               <div className="flex justify-between pl-1">
                 <FormDescription className="opacity-50">
-                  BALANCE: {parseFloat(balance).toFixed(2)} {fromPlaceholder}
+                  BALANCE: {parseFloat(gasBalance).toFixed(2)} {fromPlaceholder}
                 </FormDescription>
                 <div className="flex items-center gap-3">
                   <Button
@@ -168,7 +140,7 @@ export default function StakeForm({ activeTab }: TStakeFormProps) {
                     className="bg-[#79FFB8] text-black"
                     onClick={() => {
                       const maxAmount =
-                        Math.floor(parseFloat(balance) * 10) / 20;
+                        Math.floor(parseFloat(gasBalance) * 10) / 20;
                       form.setValue("amount", Math.max(1, maxAmount));
                     }}
                   >
@@ -180,7 +152,7 @@ export default function StakeForm({ activeTab }: TStakeFormProps) {
                     className="bg-[#79FFB8] text-black"
                     onClick={() => {
                       const maxAmount =
-                        Math.floor(parseFloat(balance) * 10) / 10;
+                        Math.floor(parseFloat(gasBalance) * 10) / 10;
                       form.setValue("amount", Math.max(1, maxAmount));
                     }}
                   >
@@ -217,7 +189,9 @@ export default function StakeForm({ activeTab }: TStakeFormProps) {
                 />
               </FormControl>
               <div className="h-2" />
-              <FormDescription>BALANCE: 0.00 {toPlaceholder}</FormDescription>
+              <FormDescription>
+                BALANCE: {parseFloat(xGasBalance).toFixed(2)} {toPlaceholder}
+              </FormDescription>
               <FormMessage />
             </FormItem>
           )}
@@ -229,7 +203,9 @@ export default function StakeForm({ activeTab }: TStakeFormProps) {
           </div>
           <div className="flex justify-between text-sm font-extralight">
             <span className="text-gray-400">Redemption Rate</span>
-            <span className="font-medium">{ratioDisplay}</span>
+            <span className="font-medium">
+              {gasToXGasRatio ? `1 GAS = ${gasToXGasRatio} xGAS` : "N/A"}
+            </span>{" "}
           </div>
           <div className="flex justify-between text-sm font-extralight">
             <span className="text-gray-400">Unbonding Period</span>

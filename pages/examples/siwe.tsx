@@ -1,3 +1,5 @@
+// File: pages\examples\siwe.tsx
+
 import React, { useEffect, useState } from 'react';
 import { NextSeo } from 'next-seo';
 import toast, { Toaster } from 'react-hot-toast';

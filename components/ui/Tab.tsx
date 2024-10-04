@@ -1,3 +1,5 @@
+// File: components\ui\Tab.tsx
+
 "use client";
 
 import * as React from "react";
