@@ -50,12 +50,19 @@ contract NeoFlexCore is ReentrancyGuard, Pausable, Ownable {
 
 
     function deposit() external payable nonReentrant whenNotPaused {
-        require(msg.value > 0, "Deposit amount must be greater than 0");
+        require(msg.value > 1, "Deposit amount must be greater than 1");
+        emit DebugLog("Deposit started", msg.value);
 
         if (lastVoteTimestamp == 0) {
             lastVoteTimestamp = block.timestamp;
+            emit DebugLog("First deposit, setting lastVoteTimestamp", lastVoteTimestamp);
         } else {
             harvestRewards(); // This will only claim if an epoch has passed
+            if (rewardsHarvested) {
+                emit DebugLog("Rewards harvested during deposit", 0);
+            } else {
+                emit DebugLog("No rewards harvested during deposit", 0);
+            }
         }
 
         uint256 xGasToMint = getGasToXGasRatio(msg.value);
@@ -77,6 +84,9 @@ contract NeoFlexCore is ReentrancyGuard, Pausable, Ownable {
             } catch Error(string memory reason) {
                 emit ErrorLog("Voting failed", reason);
                 revert("Voting failed");
+            } catch (bytes memory /*lowLevelData*/) {
+                emit ErrorLog("Voting failed", "Low level error");
+                revert("Voting failed due to low level error");
             }
         } else {
             emit DebugLog("No validator set", 0);
@@ -112,9 +122,19 @@ contract NeoFlexCore is ReentrancyGuard, Pausable, Ownable {
         emit Withdrawn(msg.sender, request.amount);
     }
 
+    // Function to withdraw any GAS that might be stuck in the contract
+    function withdraw() external onlyOwner {
+        uint256 balance = address(this).balance;
+        payable(msg.sender).transfer(balance);
+    }
 
-    function harvestRewards() public {
-        require(block.timestamp >= lastVoteTimestamp + EPOCH_DURATION, "Rewards not yet claimable");
+
+
+    function harvestRewards() internal returns (bool) {
+        if (block.timestamp < lastVoteTimestamp + EPOCH_DURATION) {
+            emit DebugLog("Rewards not yet claimable", block.timestamp);
+            return false;  // Indicate that no rewards were harvested
+        }
         
         uint256 balanceBefore = address(this).balance;
         
@@ -123,9 +143,13 @@ contract NeoFlexCore is ReentrancyGuard, Pausable, Ownable {
             accumulatedRewards += newRewards;
             lastRewardClaim = block.timestamp;
             emit RewardsHarvested(newRewards);
+            return true;  // Indicate successful reward harvesting
         } catch Error(string memory reason) {
             emit ErrorLog("Claim reward failed", reason);
-            // Decide if you want to revert here or just log the error
+            return false;  // Indicate that reward claiming failed
+        } catch (bytes memory /*lowLevelData*/) {
+            emit ErrorLog("Claim reward failed", "Low level error");
+            return false;  // Indicate that reward claiming failed due to a low-level error
         }
     }
 
@@ -145,8 +169,6 @@ contract NeoFlexCore is ReentrancyGuard, Pausable, Ownable {
         
         if (currentValidator != address(0)) {
             governanceContract.transferVote(newValidator);
-        } else {
-            governanceContract.vote{value: address(this).balance}(newValidator);
         }
         
         currentValidator = newValidator;

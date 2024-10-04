@@ -6,6 +6,8 @@ import { Inter } from "next/font/google";
 import Link from "next/link";
 import Sidebar from "@/components/layout/Sidebar";
 import Stake from "@/components/layout/Stake/Stake";
+import { TransactionProvider } from "@/contexts/TransactionContext";
+import { Toaster } from "react-hot-toast";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -41,18 +43,21 @@ export default function Home() {
     },
   ];
   return (
-    <div className="h-screen flex overflow-hidden">
-      <Sidebar />
+    <TransactionProvider>
+      <div className="h-screen flex overflow-hidden">
+        <Sidebar />
 
-      <div className="flex flex-col flex-1 overflow-auto">
-        <div className="flex justify-end pt-6 pr-6">
-          <ConnectButton />
-        </div>
+        <div className="flex flex-col flex-1 overflow-auto">
+          <div className="flex justify-end pt-6 pr-6">
+            <ConnectButton />
+          </div>
 
-        <div className="flex-1 flex items-center justify-center">
-          <Stake />
+          <div className="flex-1 flex items-center justify-center">
+            <Stake />
+          </div>
         </div>
+        <Toaster position="bottom-right" />
       </div>
-    </div>
+    </TransactionProvider>
   );
 }
