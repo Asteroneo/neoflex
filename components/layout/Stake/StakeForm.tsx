@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import { Button } from "@/components/ui/Button";
 import {
   Form,
@@ -15,6 +15,9 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { IconArrowDown, IconSparkles } from "@tabler/icons-react";
 import { useSmartContract } from "@/helpers/useCoreContract";
+import { useXGasContract } from "@/helpers/useXGasContract";
+import { parseEther, formatEther } from "viem";
+
 import { useBalance } from "@/utils/fetchBalance";
 import { toast } from "react-hot-toast";
 import { useContractData } from "@/contexts/ContractDataContext";
@@ -37,12 +40,36 @@ export default function StakeForm({ activeTab }: TStakeFormProps) {
   });
 
   const { totalStaked, xGasToGasRatio, gasToXGasRatio } = useContractData();
-  console.log(totalStaked, xGasToGasRatio, gasToXGasRatio);
   const amount = form.watch("amount");
 
-  const { useDeposit } = useSmartContract();
-  const { write, isWriteLoading, isTransactionLoading, isSuccess } =
-    useDeposit(amount);
+  const { useDeposit, useRequestUnstake } = useSmartContract();
+  const { useXGasAllowance, useApproveXGas } = useXGasContract();
+  const isStaking = activeTab === "stake";
+
+  const {
+    write: writeDeposit,
+    isWriteLoading: isDepositWriteLoading,
+    isTransactionLoading: isDepositTransactionLoading,
+    isSuccess: isDepositSuccess,
+    error: depositError,
+  } = useDeposit(amount);
+  const {
+    write: writeRequestUnstake,
+    isWriteLoading: isUnstakeWriteLoading,
+    isTransactionLoading: isUnstakeTransactionLoading,
+    isSuccess: isUnstakeSuccess,
+    error: unstakeError,
+  } = useRequestUnstake(amount);
+  const { allowance: xGasAllowance, refetch: refetchAllowance } =
+    useXGasAllowance();
+  const {
+    approve: writeApprove,
+    isLoading: isApproveLoading,
+    isSuccess: isApproveSuccess,
+    error: approveError,
+  } = useApproveXGas();
+
+  const [isApproving, setIsApproving] = useState(false);
 
   const { balance: gasBalance } = useBalance();
   const { balance: xGasBalance } = useBalance(
@@ -50,25 +77,83 @@ export default function StakeForm({ activeTab }: TStakeFormProps) {
   );
 
   const onSubmit = async (formData: z.infer<typeof formSchema>) => {
-    if (!write) {
-      toast.error("Unable to submit transaction. Please try again.");
-      return;
+    if (isStaking) {
+      if (!writeDeposit) {
+        toast.error("Unable to submit transaction. Please try again.");
+        return;
+      }
+      toast.loading("Waiting for approval in MetaMask...", { id: "txn" });
+      writeDeposit();
+    } else {
+      const amountInWei = parseEther(formData.amount.toString());
+      if (xGasAllowance && xGasAllowance < amountInWei) {
+        setIsApproving(true);
+        toast.loading("Waiting for approval in MetaMask...", { id: "approve" });
+        writeApprove?.();
+      } else {
+        if (!writeRequestUnstake) {
+          toast.error("Unable to submit transaction. Please try again.");
+          return;
+        }
+        toast.loading("Waiting for approval in MetaMask...", { id: "txn" });
+        writeRequestUnstake();
+      }
     }
-
-    toast.loading("Waiting for approval...", { id: "txn" });
-    write();
   };
 
   useEffect(() => {
-    if (isWriteLoading || isTransactionLoading) {
-      toast.loading("Processing transaction...", { id: "txn" });
-    } else if (isSuccess) {
-      toast.success("Transaction successful!", { id: "txn" });
-      form.reset();
+    if (isStaking) {
+      if (isDepositWriteLoading) {
+        toast.loading("Waiting for approval in MetaMask...", { id: "txn" });
+      } else if (isDepositTransactionLoading) {
+        toast.loading("Processing transaction...", { id: "txn" });
+      } else if (isDepositSuccess) {
+        toast.success("Transaction successful!", { id: "txn" });
+        form.reset();
+      } else if (depositError) {
+        toast.error(depositError.message || "Transaction failed", {
+          id: "txn",
+        });
+      }
+    } else {
+      if (isUnstakeWriteLoading) {
+        toast.loading("Waiting for approval...", { id: "txn" });
+      } else if (isUnstakeTransactionLoading) {
+        toast.loading("Processing transaction...", { id: "txn" });
+      } else if (isUnstakeSuccess) {
+        toast.success("Transaction successful!", { id: "txn" });
+        form.reset();
+      } else if (unstakeError) {
+        toast.error(unstakeError.message || "Transaction failed", {
+          id: "txn",
+        });
+      }
     }
-  }, [isWriteLoading, isTransactionLoading, isSuccess, form]);
+  }, [
+    isDepositWriteLoading,
+    isDepositTransactionLoading,
+    isDepositSuccess,
+    depositError,
+    isUnstakeWriteLoading,
+    isUnstakeTransactionLoading,
+    isUnstakeSuccess,
+    unstakeError,
+    form,
+    isStaking,
+  ]);
 
-  const isStaking = activeTab === "stake";
+  useEffect(() => {
+    if (isApproveLoading) {
+      toast.loading("Processing approval...", { id: "approve" });
+    } else if (isApproveSuccess) {
+      toast.success("xGAS approved!", { id: "approve" });
+      setIsApproving(false);
+      refetchAllowance();
+    } else if (approveError) {
+      toast.error(approveError.message || "Approval failed", { id: "approve" });
+      setIsApproving(false);
+    }
+  }, [isApproveLoading, isApproveSuccess, approveError, refetchAllowance]);
 
   const userGasBalance = {
     balance: isStaking ? gasBalance : xGasBalance,
@@ -95,6 +180,10 @@ export default function StakeForm({ activeTab }: TStakeFormProps) {
     () => convertAmount(amount),
     [amount, isStaking, gasToXGasRatio, xGasToGasRatio]
   );
+
+  const isLoading = isStaking
+    ? isDepositWriteLoading || isDepositTransactionLoading
+    : isUnstakeWriteLoading || isUnstakeTransactionLoading || isApproveLoading;
 
   return (
     <Form {...form}>
@@ -214,9 +303,15 @@ export default function StakeForm({ activeTab }: TStakeFormProps) {
         <Button
           type="submit"
           className="w-full bg-[#79FFB8] text-black h-12"
-          disabled={isWriteLoading || isTransactionLoading}
+          disabled={isLoading}
         >
-          {isWriteLoading || isTransactionLoading ? "Processing..." : "Submit"}
+          {isLoading
+            ? "Processing..."
+            : isApproving
+            ? "Approve xGAS"
+            : isStaking
+            ? "Stake"
+            : "Unstake"}
         </Button>
       </form>
     </Form>

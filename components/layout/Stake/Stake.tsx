@@ -78,7 +78,9 @@ export default function Stake() {
             value={
               isXGasLoading
                 ? "Loading..."
-                : `${parseFloat(xGasBalance) * Number(xGasToGasRatio)} GAS`
+                : `${(parseFloat(xGasBalance) * Number(xGasToGasRatio)).toFixed(
+                    2
+                  )} GAS`
             }
           />{" "}
         </div>

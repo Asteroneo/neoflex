@@ -1,5 +1,3 @@
-// File: helpers\useCoreContract.tsx
-
 import { parseEther } from "viem";
 import {
   useContractWrite,
@@ -13,7 +11,7 @@ const CONTRACT_ADDRESS = process.env.NEXT_PUBLIC_CORE_ADDRESS as `0x${string}`;
 
 export const useSmartContract = () => {
   const useDeposit = (amount: number) => {
-    const { config } = usePrepareContractWrite({
+    const { config, error: prepareError } = usePrepareContractWrite({
       address: CONTRACT_ADDRESS,
       abi: NeoFlexCoreABI.abi,
       functionName: "deposit",
@@ -21,18 +19,60 @@ export const useSmartContract = () => {
       enabled: amount > 0,
     });
 
-    const { data, write, isLoading: isWriteLoading } = useContractWrite(config);
+    const {
+      data,
+      write,
+      error: writeError,
+      isLoading: isWriteLoading,
+    } = useContractWrite(config);
 
-    const { isLoading: isTransactionLoading, isSuccess } =
-      useWaitForTransaction({
-        hash: data?.hash,
-      });
+    const {
+      isLoading: isTransactionLoading,
+      isSuccess,
+      error: transactionError,
+    } = useWaitForTransaction({
+      hash: data?.hash,
+    });
 
     return {
       write,
       isWriteLoading,
       isTransactionLoading,
       isSuccess,
+      error: prepareError || writeError || transactionError,
+    };
+  };
+
+  const useRequestUnstake = (amount: number) => {
+    const { config, error: prepareError } = usePrepareContractWrite({
+      address: CONTRACT_ADDRESS,
+      abi: NeoFlexCoreABI.abi,
+      functionName: "requestUnstake",
+      args: [parseEther(amount.toString())],
+      enabled: amount > 0,
+    });
+
+    const {
+      data,
+      write,
+      error: writeError,
+      isLoading: isWriteLoading,
+    } = useContractWrite(config);
+
+    const {
+      isLoading: isTransactionLoading,
+      isSuccess,
+      error: transactionError,
+    } = useWaitForTransaction({
+      hash: data?.hash,
+    });
+
+    return {
+      write,
+      isWriteLoading,
+      isTransactionLoading,
+      isSuccess,
+      error: prepareError || writeError || transactionError,
     };
   };
 
@@ -51,10 +91,9 @@ export const useSmartContract = () => {
     };
   };
 
-  // Add other contract functions here as needed
-
   return {
     useDeposit,
+    useRequestUnstake,
     useGasToXGasRatio,
   };
 };
