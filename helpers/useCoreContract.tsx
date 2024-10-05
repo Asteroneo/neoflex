@@ -7,7 +7,7 @@ import {
   useWaitForTransaction,
   useContractRead,
 } from "wagmi";
-import NeoFlexCoreABI from "@/contracts/artifacts/contracts/NeoFlexCore.sol/NeoFlexCore.json";
+import NeoFlexCoreABI from "@/abi/NeoFlexCore.json";
 
 const CONTRACT_ADDRESS = process.env.NEXT_PUBLIC_CORE_ADDRESS as `0x${string}`;
 
