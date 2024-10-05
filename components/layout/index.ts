@@ -1,3 +1,5 @@
+// File: components\layout\index.ts
+
 import SEO from './SEO';
 import Navbar from './Navbar';
 import HeadingComponent from './HeadingComponent';

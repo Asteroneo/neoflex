@@ -1,3 +1,5 @@
+// File: components\layout\CustomButton.tsx
+
 import React from 'react';
 import { Inter } from 'next/font/google';
 

@@ -1,3 +1,4 @@
+import React, { useEffect, useMemo } from "react";
 import { Button } from "@/components/ui/Button";
 import {
   Form,
@@ -10,37 +11,90 @@ import {
 } from "@/components/ui/Form";
 import { Input } from "@/components/ui/Input";
 import { useForm } from "react-hook-form";
-import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
+import { z } from "zod";
 import { IconArrowDown, IconSparkles } from "@tabler/icons-react";
+import { useSmartContract } from "@/helpers/useCoreContract";
+import { useBalance } from "@/utils/fetchBalance";
+import { toast } from "react-hot-toast";
+import { useContractData } from "@/contexts/ContractDataContext";
 
 type TStakeFormProps = {
   activeTab: string;
 };
 
 const formSchema = z.object({
-  amount: z.number().min(1, { message: "Amount must be greater than 0" }),
+  amount: z
+    .number()
+    .min(1, { message: "Amount must be at least 1" })
+    .multipleOf(0.1, { message: "Amount must be a multiple of 0.1" }),
 });
 
 export default function StakeForm({ activeTab }: TStakeFormProps) {
-  const form = useForm({
+  const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
-    defaultValues: {
-      amount: 0,
-    },
+    defaultValues: { amount: 1 },
   });
 
-  const onSubmit = (data: unknown) => {
-    console.log(data);
+  const { totalStaked, xGasToGasRatio, gasToXGasRatio } = useContractData();
+  console.log(totalStaked, xGasToGasRatio, gasToXGasRatio);
+  const amount = form.watch("amount");
+
+  const { useDeposit } = useSmartContract();
+  const { write, isWriteLoading, isTransactionLoading, isSuccess } =
+    useDeposit(amount);
+
+  const { balance: gasBalance } = useBalance();
+  const { balance: xGasBalance } = useBalance(
+    process.env.NEXT_PUBLIC_XGAS_ADDRESS as `0x${string}`
+  );
+
+  const onSubmit = async (formData: z.infer<typeof formSchema>) => {
+    if (!write) {
+      toast.error("Unable to submit transaction. Please try again.");
+      return;
+    }
+
+    toast.loading("Waiting for approval...", { id: "txn" });
+    write();
   };
 
+  useEffect(() => {
+    if (isWriteLoading || isTransactionLoading) {
+      toast.loading("Processing transaction...", { id: "txn" });
+    } else if (isSuccess) {
+      toast.success("Transaction successful!", { id: "txn" });
+      form.reset();
+    }
+  }, [isWriteLoading, isTransactionLoading, isSuccess, form]);
+
   const isStaking = activeTab === "stake";
-  const fromLabel = isStaking ? "Amount to Stake" : "Amount to Unstake";
-  const toLabel = isStaking
-    ? "Amount to Receive (xGAS)"
-    : "Amount to Receive (GAS)";
-  const fromPlaceholder = isStaking ? "GAS" : "xGAS";
-  const toPlaceholder = isStaking ? "xGAS" : "GAS";
+
+  const userGasBalance = {
+    balance: isStaking ? gasBalance : xGasBalance,
+    label: isStaking ? "Amount to Stake" : "Amount to Unstake",
+    placeholder: isStaking ? "GAS" : "xGAS",
+  };
+
+  const userXGasBalance = {
+    balance: isStaking ? xGasBalance : gasBalance,
+    label: isStaking ? "Amount to Receive (xGAS)" : "Amount to Receive (GAS)",
+    placeholder: isStaking ? "xGAS" : "GAS",
+  };
+
+  const convertAmount = (amount: number): number => {
+    if (isStaking && gasToXGasRatio) {
+      return amount * parseFloat(gasToXGasRatio);
+    } else if (!isStaking && xGasToGasRatio) {
+      return amount * parseFloat(xGasToGasRatio);
+    }
+    return amount;
+  };
+
+  const convertedAmount = useMemo(
+    () => convertAmount(amount),
+    [amount, isStaking, gasToXGasRatio, xGasToGasRatio]
+  );
 
   return (
     <Form {...form}>
@@ -50,28 +104,42 @@ export default function StakeForm({ activeTab }: TStakeFormProps) {
           name="amount"
           render={({ field }) => (
             <FormItem>
-              <FormLabel className="font-normal text-base font-semibold pl-1">
-                {fromLabel}
+              <FormLabel className="text-base font-semibold pl-1">
+                {userGasBalance.label}
               </FormLabel>
               <FormControl>
                 <Input
                   type="number"
+                  min="1"
+                  step="0.01"
                   {...field}
+                  onChange={(e) => {
+                    const value =
+                      e.target.value === "" ? 1 : parseFloat(e.target.value);
+                    field.onChange(value);
+                  }}
                   className="rounded-full no-spinner p-6"
                   icon={<IconSparkles stroke={2} />}
-                  placeholderText={fromPlaceholder}
+                  placeholderText={userGasBalance.placeholder}
                 />
               </FormControl>
               <div className="h-2" />
               <div className="flex justify-between pl-1">
                 <FormDescription className="opacity-50">
-                  BALANCE: 0.00 {fromPlaceholder}
+                  BALANCE: {parseFloat(userGasBalance.balance).toFixed(2)}{" "}
+                  {userGasBalance.placeholder}
                 </FormDescription>
                 <div className="flex items-center gap-3">
                   <Button
                     type="button"
                     variant="ghost"
                     className="bg-[#79FFB8] text-black"
+                    onClick={() => {
+                      const maxAmount =
+                        Math.floor(parseFloat(userGasBalance.balance) * 10) /
+                        20;
+                      form.setValue("amount", Math.max(1, maxAmount));
+                    }}
                   >
                     HALF
                   </Button>
@@ -79,6 +147,12 @@ export default function StakeForm({ activeTab }: TStakeFormProps) {
                     type="button"
                     variant="ghost"
                     className="bg-[#79FFB8] text-black"
+                    onClick={() => {
+                      const maxAmount =
+                        Math.floor(parseFloat(userGasBalance.balance) * 10) /
+                        10;
+                      form.setValue("amount", Math.max(1, maxAmount));
+                    }}
                   >
                     MAX
                   </Button>
@@ -98,40 +172,51 @@ export default function StakeForm({ activeTab }: TStakeFormProps) {
           name="amount"
           render={({ field }) => (
             <FormItem>
-              <FormLabel className=" text-base font-semibold pl-1">
-                {toLabel}
+              <FormLabel className="text-base font-semibold pl-1">
+                {userXGasBalance.label}
               </FormLabel>
               <FormControl>
                 <Input
                   type="number"
-                  {...field}
+                  step="0.000001"
+                  value={convertedAmount.toFixed(6)}
+                  readOnly
                   className="rounded-full no-spinner p-6"
                   icon={<IconSparkles stroke={2} />}
-                  placeholderText={toPlaceholder}
+                  placeholderText={userXGasBalance.placeholder}
                 />
               </FormControl>
               <div className="h-2" />
-              <FormDescription>BALANCE: 0.00 {toPlaceholder}</FormDescription>
+              <FormDescription className="opacity-50">
+                BALANCE: {parseFloat(userXGasBalance.balance).toFixed(2)}{" "}
+                {userXGasBalance.placeholder}
+              </FormDescription>
               <FormMessage />
             </FormItem>
           )}
         />
         <div className="space-y-2 mb-8">
           <div className="flex justify-between text-sm font-extralight">
-            <span className="text-gray-400">Transaction Cost</span>
-            <span className="font-medium">14,103.281212 EUCL</span>
+            <span className="text-gray-400">Total Staked</span>
+            <span className="font-medium">{totalStaked} GAS</span>
           </div>
           <div className="flex justify-between text-sm font-extralight">
             <span className="text-gray-400">Redemption Rate</span>
-            <span className="font-medium">1 VSL = 1.243222 eEUCL</span>
+            <span className="font-medium">
+              {xGasToGasRatio ? `1 xGAS = ${xGasToGasRatio} GAS` : "N/A"}
+            </span>
           </div>
           <div className="flex justify-between text-sm font-extralight">
             <span className="text-gray-400">Unbonding Period</span>
             <span className="font-medium">14 days</span>
           </div>
         </div>
-        <Button type="submit" className="w-full bg-[#79FFB8] text-black h-12">
-          Submit
+        <Button
+          type="submit"
+          className="w-full bg-[#79FFB8] text-black h-12"
+          disabled={isWriteLoading || isTransactionLoading}
+        >
+          {isWriteLoading || isTransactionLoading ? "Processing..." : "Submit"}
         </Button>
       </form>
     </Form>

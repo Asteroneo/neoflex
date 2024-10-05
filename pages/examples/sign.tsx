@@ -1,3 +1,5 @@
+// File: pages\examples\sign.tsx
+
 import React, { useState, useRef } from 'react';
 import { NextSeo } from 'next-seo';
 import { useAccount, useSignMessage } from 'wagmi';

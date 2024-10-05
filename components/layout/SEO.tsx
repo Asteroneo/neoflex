@@ -1,3 +1,5 @@
+// File: components\layout\SEO.tsx
+
 import React from 'react';
 import {
 	SITE_DESCRIPTION,

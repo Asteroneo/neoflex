@@ -1,3 +1,5 @@
+// File: pages\examples\send-erc20.tsx
+
 import React, { useState, useEffect } from 'react';
 import { NextSeo } from 'next-seo';
 import { Toaster, toast } from 'react-hot-toast';

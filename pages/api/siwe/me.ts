@@ -1,3 +1,5 @@
+// File: pages\api\siwe\me.ts
+
 import { withIronSessionApiRoute } from 'iron-session/next';
 import { NextApiRequest, NextApiResponse } from 'next';
 import { ironOptions } from '@/utils/config';

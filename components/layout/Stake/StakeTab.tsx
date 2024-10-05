@@ -1,7 +1,13 @@
+// File: components\layout\Stake\StakeTab.tsx
+
 import { cn } from "@/utils";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "../../ui/tab";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "../../ui/Tab";
 import StakeForm from "./StakeForm";
 import { useState } from "react";
+
+interface StakeTabProps {
+  xGasToGasRatio: string | null;
+}
 
 export default function StakeTab() {
   const [activeTab, setActiveTab] = useState("stake");

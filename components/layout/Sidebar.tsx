@@ -1,3 +1,4 @@
+// File: components\layout\Sidebar.tsx
 import React from "react";
 import {
   IconBox,
@@ -13,32 +14,39 @@ type TSidebarItemProps = {
   icon: TablerIcon;
   text: string;
   active?: boolean;
+  comingSoon?: boolean;
 };
+
 function Sidebar() {
   return (
     <div className="w-64 bg-opacity-50 border-2 p-6 flex flex-col h-5/6 h-[95%] mt-6 mx-6 rounded-xl border-opacity-70 border-white">
       <div className="flex items-center justify-center mb-12">
         <IconSparkles className="w-8 h-8 text-[#79FFB8]" stroke={2} />
-        <h1 className="text-3xl font-extralight ml-2">Euclid</h1>
+        <h1 className="text-3xl font-extralight ml-2">NeoFlex</h1>
       </div>
       <nav className="flex-grow space-y-6">
         <SidebarItem icon={IconLock} text="Staking" active />
-        <SidebarItem icon={IconCoins} text="Assets" />
-        <SidebarItem icon={IconBox} text="DeFi" />
-        <SidebarItem icon={IconZeppelin} text="Airdrop" />
-        <SidebarItem icon={IconBuildingBank} text="Governance" />
+        <SidebarItem icon={IconCoins} text="Assets" comingSoon />
+        <SidebarItem icon={IconBox} text="DeFi" comingSoon />
+        <SidebarItem icon={IconZeppelin} text="Airdrop" comingSoon />
+        <SidebarItem icon={IconBuildingBank} text="Governance" comingSoon />
       </nav>
       <div className="text-xs text-gray-500 mt-auto text-center">
-        Powered By Euclid Protocol
+        Powered By NeoFlex Protocol
       </div>
     </div>
   );
 }
 
-function SidebarItem({ icon: Icon, text, active = false }: TSidebarItemProps) {
+function SidebarItem({
+  icon: Icon,
+  text,
+  active = false,
+  comingSoon = false,
+}: TSidebarItemProps) {
   return (
     <div
-      className={`flex items-center p-2 rounded-lg  ${
+      className={`flex items-center p-2 rounded-lg relative ${
         active
           ? "bg-gray-800 bg-opacity-50"
           : "hover:bg-gray-800 hover:bg-opacity-50"
@@ -53,6 +61,11 @@ function SidebarItem({ icon: Icon, text, active = false }: TSidebarItemProps) {
       <span className={`font-semibold ${active ? "text-[#79FFB8]" : ""}`}>
         {text}
       </span>
+      {comingSoon && (
+        <span className="absolute top-0 right-0 bg-[#79FFB8] text-black text-xs px-1 py-0.5 rounded-bl-lg rounded-tr-lg">
+          Soon
+        </span>
+      )}
     </div>
   );
 }

@@ -1,3 +1,5 @@
+// File: components\layout\Navbar.tsx
+
 import Image from "next/image";
 import { ConnectButton } from "@rainbow-me/rainbowkit";
 import Link from "next/link";

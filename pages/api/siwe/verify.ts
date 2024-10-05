@@ -1,3 +1,5 @@
+// File: pages\api\siwe\verify.ts
+
 import { withIronSessionApiRoute } from 'iron-session/next';
 import { NextApiRequest, NextApiResponse } from 'next';
 import { SiweMessage } from 'siwe';

@@ -1,3 +1,5 @@
+// File: pages\examples\ens.tsx
+
 import React, { useState } from 'react';
 import { NextSeo } from 'next-seo';
 import { fetchEnsAddress, fetchEnsName } from '@wagmi/core';

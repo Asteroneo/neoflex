@@ -1,3 +1,5 @@
+// File: pages\api\siwe\logout.ts
+
 import { withIronSessionApiRoute } from 'iron-session/next';
 import { NextApiRequest, NextApiResponse } from 'next';
 import { ironOptions } from '@/utils/config';
