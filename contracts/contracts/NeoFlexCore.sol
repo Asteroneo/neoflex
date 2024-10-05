@@ -163,6 +163,13 @@ contract NeoFlexCore is ReentrancyGuard, Pausable, Ownable {
         return (xGasAmount * (totalStaked + accumulatedRewards)) / xGASToken.totalSupply();
     }
 
+    function addAccumulatedRewards() external payable onlyOwner {
+    require(msg.value > 0, "Must send ETH to add to accumulated rewards");
+    accumulatedRewards += msg.value;
+    emit DebugLog("Accumulated rewards increased", msg.value);
+    }
+
+
     function updateValidator(address newValidator) external onlyOwner {
         require(newValidator != address(0), "Invalid validator address");
         require(newValidator != currentValidator, "New validator must be different from current");

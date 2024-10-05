@@ -6,10 +6,10 @@ import StakeForm from "./StakeForm";
 import { useState } from "react";
 
 interface StakeTabProps {
-  gasToXGasRatio: string | null;
+  xGasToGasRatio: string | null;
 }
 
-export default function StakeTab({ gasToXGasRatio }: StakeTabProps) {
+export default function StakeTab({ xGasToGasRatio }: StakeTabProps) {
   const [activeTab, setActiveTab] = useState("stake");
 
   return (
@@ -45,11 +45,11 @@ export default function StakeTab({ gasToXGasRatio }: StakeTabProps) {
       </TabsList>
       <TabsContent value="stake">
         <div className="h-6" />
-        <StakeForm activeTab={activeTab} gasToXGasRatio={gasToXGasRatio} />
+        <StakeForm activeTab={activeTab} xGasToGasRatio={xGasToGasRatio} />
       </TabsContent>
       <TabsContent value="unstake">
         <div className="h-6" />
-        <StakeForm activeTab={activeTab} gasToXGasRatio={gasToXGasRatio} />
+        <StakeForm activeTab={activeTab} xGasToGasRatio={xGasToGasRatio} />
       </TabsContent>
     </Tabs>
   );

@@ -18,10 +18,10 @@ type TListItem = {
 };
 
 interface StakeProps {
-  gasToXGasRatio: string | null;
+  xGasToGasRatio: string | null;
 }
 
-export default function Stake({ gasToXGasRatio }: StakeProps) {
+export default function Stake({ xGasToGasRatio }: StakeProps) {
   const {
     balance: gasBalance,
     isLoading: isGasLoading,
@@ -36,7 +36,7 @@ export default function Stake({ gasToXGasRatio }: StakeProps) {
   return (
     <div className="max-w-7xl min-w-[1100px] bg-opacity-50 rounded-3xl shadow-lg overflow-hidden flex gap-3 border-2 border-white border-opacity-30">
       <div className="w-1/2 relative before:absolute before:top-0 before:bottom-0 before:right-0 before:w-px before:bg-gradient-to-b before:from-transparent before:via-white before:to-transparent before:opacity-50">
-        <StakeTab gasToXGasRatio={gasToXGasRatio} />
+        <StakeTab xGasToGasRatio={xGasToGasRatio} />
       </div>
 
       <div className="w-1/2 p-10 ">
@@ -48,7 +48,9 @@ export default function Stake({ gasToXGasRatio }: StakeProps) {
           <ListItem
             icon={IconFileAnalytics}
             label="Ratio of xGAS"
-            value={` ${gasToXGasRatio ? BigInt(gasToXGasRatio) : "N/A"} GAS`}
+            value={` ${
+              xGasToGasRatio ? parseFloat(xGasToGasRatio).toFixed(4) : "N/A"
+            } GAS`}
           />
         </div>
         <div className="bg-green-[#79FFB8] bg-opacity-30 p-4 rounded-xl text-sm font-extralight">
@@ -73,7 +75,7 @@ export default function Stake({ gasToXGasRatio }: StakeProps) {
             value={
               isXGasLoading
                 ? "Loading..."
-                : `${parseFloat(xGasBalance) * Number(gasToXGasRatio)} GAS`
+                : `${parseFloat(xGasBalance) * Number(xGasToGasRatio)} GAS`
             }
           />{" "}
         </div>

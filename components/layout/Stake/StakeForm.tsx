@@ -23,7 +23,7 @@ import { useBalance } from "@/utils/fetchBalance"; // Import the improved hook
 
 type TStakeFormProps = {
   activeTab: string;
-  gasToXGasRatio: string | null;
+  xGasToGasRatio: string | null;
 };
 
 const formSchema = z.object({
@@ -35,7 +35,7 @@ const formSchema = z.object({
 
 export default function StakeForm({
   activeTab,
-  gasToXGasRatio,
+  xGasToGasRatio,
 }: TStakeFormProps) {
   const { setStatus } = useTransaction();
   const { useDeposit } = useSmartContract();
@@ -204,7 +204,7 @@ export default function StakeForm({
           <div className="flex justify-between text-sm font-extralight">
             <span className="text-gray-400">Redemption Rate</span>
             <span className="font-medium">
-              {gasToXGasRatio ? `1 GAS = ${gasToXGasRatio} xGAS` : "N/A"}
+              {xGasToGasRatio ? `1 xGAS = ${xGasToGasRatio} GAS` : "N/A"}
             </span>{" "}
           </div>
           <div className="flex justify-between text-sm font-extralight">

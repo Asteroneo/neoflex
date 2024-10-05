@@ -11,23 +11,23 @@ import Stake from "@/components/layout/Stake/Stake";
 import { TransactionProvider } from "@/contexts/TransactionContext";
 import { Toaster } from "react-hot-toast";
 import { GetServerSideProps } from "next";
-import { getGasToXGasRatio } from "@/utils/getContractData";
+import { getGasToXGasRatio, getXGasToGasRatio } from "@/utils/getContractData";
 
 export const getServerSideProps: GetServerSideProps = async () => {
-  const gasToXGasRatio = await getGasToXGasRatio();
+  const xGasToGasRatio = await getXGasToGasRatio();
 
   return {
     props: {
-      gasToXGasRatio,
+      xGasToGasRatio,
     },
   };
 };
 
 interface HomeProps {
-  gasToXGasRatio: string | null;
+  xGasToGasRatio: string | null;
 }
 
-export default function Home({ gasToXGasRatio }: HomeProps) {
+export default function Home({ xGasToGasRatio }: HomeProps) {
   const origin =
     typeof window !== "undefined" && window.location.origin
       ? window.location.origin
@@ -70,7 +70,7 @@ export default function Home({ gasToXGasRatio }: HomeProps) {
           </div>
 
           <div className="flex-1 flex items-center justify-center">
-            <Stake gasToXGasRatio={gasToXGasRatio} />
+            <Stake xGasToGasRatio={xGasToGasRatio} />
           </div>
         </div>
         <Toaster position="bottom-right" />
