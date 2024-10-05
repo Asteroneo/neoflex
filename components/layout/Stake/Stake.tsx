@@ -56,9 +56,9 @@ export default function Stake() {
             } GAS`}
           />
         </div>
-        <div className="bg-green-[#79FFB8] bg-opacity-30 p-4 rounded-xl text-sm font-extralight">
-          Want to learn more about rewards, fees and unbonding on Neox? Check
-          out the docs.
+        <div className="bg-[#1a1b1f] bg-opacity-100 p-4 rounded-xl text-sm font-extralight">
+          Want to learn more about rewards, fees and unbonding on Neox?{" "}
+          <br></br>Check out the docs.
         </div>
         <h3 className="text-lg font-extralight mt-8 mb-6">Assets</h3>
         <div className="space-y-4">

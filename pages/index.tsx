@@ -10,17 +10,22 @@ import Sidebar from "@/components/layout/Sidebar";
 import Stake from "@/components/layout/Stake/Stake";
 import { Toaster } from "react-hot-toast";
 import { GetServerSideProps } from "next";
-import { getTotalStaked, getXGasToGasRatio } from "@/utils/getContractData";
+import {
+  getTotalStaked,
+  getXGasToGasRatio,
+  getGasToXGasRatio,
+} from "@/utils/getContractData";
 import { ContractDataProvider } from "@/contexts/ContractDataContext";
 
 export const getServerSideProps: GetServerSideProps = async () => {
   const xGasToGasRatio = await getXGasToGasRatio();
   const totalStaked = await getTotalStaked();
-
+  const gasToXGasRatio = await getGasToXGasRatio();
   return {
     props: {
       xGasToGasRatio,
       totalStaked,
+      gasToXGasRatio,
     },
   };
 };
@@ -28,9 +33,14 @@ export const getServerSideProps: GetServerSideProps = async () => {
 interface HomeProps {
   xGasToGasRatio: string | null;
   totalStaked: string | null;
+  gasToXGasRatio: string | null;
 }
 
-export default function Home({ xGasToGasRatio, totalStaked }: HomeProps) {
+export default function Home({
+  xGasToGasRatio,
+  totalStaked,
+  gasToXGasRatio,
+}: HomeProps) {
   const origin =
     typeof window !== "undefined" && window.location.origin
       ? window.location.origin
@@ -63,7 +73,9 @@ export default function Home({ xGasToGasRatio, totalStaked }: HomeProps) {
   ];
 
   return (
-    <ContractDataProvider value={{ xGasToGasRatio, totalStaked }}>
+    <ContractDataProvider
+      value={{ xGasToGasRatio, totalStaked, gasToXGasRatio }}
+    >
       <div className="h-screen flex overflow-hidden">
         <Sidebar />
 

@@ -1,4 +1,4 @@
-import React, { useEffect } from "react";
+import React, { useEffect, useMemo } from "react";
 import { Button } from "@/components/ui/Button";
 import {
   Form,
@@ -21,7 +21,6 @@ import { useContractData } from "@/contexts/ContractDataContext";
 
 type TStakeFormProps = {
   activeTab: string;
-  xGasToGasRatio: string | null;
 };
 
 const formSchema = z.object({
@@ -37,8 +36,8 @@ export default function StakeForm({ activeTab }: TStakeFormProps) {
     defaultValues: { amount: 1 },
   });
 
-  const { totalStaked, xGasToGasRatio } = useContractData();
-
+  const { totalStaked, xGasToGasRatio, gasToXGasRatio } = useContractData();
+  console.log(totalStaked, xGasToGasRatio, gasToXGasRatio);
   const amount = form.watch("amount");
 
   const { useDeposit } = useSmartContract();
@@ -70,6 +69,7 @@ export default function StakeForm({ activeTab }: TStakeFormProps) {
   }, [isWriteLoading, isTransactionLoading, isSuccess, form]);
 
   const isStaking = activeTab === "stake";
+
   const userGasBalance = {
     balance: isStaking ? gasBalance : xGasBalance,
     label: isStaking ? "Amount to Stake" : "Amount to Unstake",
@@ -81,6 +81,20 @@ export default function StakeForm({ activeTab }: TStakeFormProps) {
     label: isStaking ? "Amount to Receive (xGAS)" : "Amount to Receive (GAS)",
     placeholder: isStaking ? "xGAS" : "GAS",
   };
+
+  const convertAmount = (amount: number): number => {
+    if (isStaking && gasToXGasRatio) {
+      return amount * parseFloat(gasToXGasRatio);
+    } else if (!isStaking && xGasToGasRatio) {
+      return amount * parseFloat(xGasToGasRatio);
+    }
+    return amount;
+  };
+
+  const convertedAmount = useMemo(
+    () => convertAmount(amount),
+    [amount, isStaking, gasToXGasRatio, xGasToGasRatio]
+  );
 
   return (
     <Form {...form}>
@@ -165,8 +179,8 @@ export default function StakeForm({ activeTab }: TStakeFormProps) {
                 <Input
                   type="number"
                   step="0.000001"
-                  {...field}
-                  onChange={(e) => field.onChange(parseFloat(e.target.value))}
+                  value={convertedAmount.toFixed(6)}
+                  readOnly
                   className="rounded-full no-spinner p-6"
                   icon={<IconSparkles stroke={2} />}
                   placeholderText={userXGasBalance.placeholder}

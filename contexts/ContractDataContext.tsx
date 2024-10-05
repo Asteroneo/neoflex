@@ -3,6 +3,7 @@ import React, { createContext, useContext, ReactNode } from "react";
 interface ContractData {
   xGasToGasRatio: string | null;
   totalStaked: string | null;
+  gasToXGasRatio: string | null;
 }
 
 const ContractDataContext = createContext<ContractData | undefined>(undefined);
