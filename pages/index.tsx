@@ -8,7 +8,6 @@ import { Inter } from "next/font/google";
 import Link from "next/link";
 import Sidebar from "@/components/layout/Sidebar";
 import Stake from "@/components/layout/Stake/Stake";
-import { TransactionProvider } from "@/contexts/TransactionContext";
 import { Toaster } from "react-hot-toast";
 import { GetServerSideProps } from "next";
 import { getGasToXGasRatio, getXGasToGasRatio } from "@/utils/getContractData";
@@ -60,21 +59,19 @@ export default function Home({ xGasToGasRatio }: HomeProps) {
   ];
 
   return (
-    <TransactionProvider>
-      <div className="h-screen flex overflow-hidden">
-        <Sidebar />
+    <div className="h-screen flex overflow-hidden">
+      <Sidebar />
 
-        <div className="flex flex-col flex-1 overflow-auto">
-          <div className="flex justify-end pt-6 pr-6">
-            <ConnectButton />
-          </div>
-
-          <div className="flex-1 flex items-center justify-center">
-            <Stake xGasToGasRatio={xGasToGasRatio} />
-          </div>
+      <div className="flex flex-col flex-1 overflow-auto">
+        <div className="flex justify-end pt-6 pr-6">
+          <ConnectButton />
         </div>
-        <Toaster position="bottom-right" />
+
+        <div className="flex-1 flex items-center justify-center">
+          <Stake xGasToGasRatio={xGasToGasRatio} />
+        </div>
       </div>
-    </TransactionProvider>
+      <Toaster position="bottom-right" />
+    </div>
   );
 }
