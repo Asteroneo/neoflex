@@ -16,7 +16,6 @@ import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { IconArrowDown, IconSparkles } from "@tabler/icons-react";
-import { useAccount, usePublicClient } from "wagmi";
 import { useSmartContract } from "@/helpers/useCoreContract";
 import { useTransaction } from "@/contexts/TransactionContext";
 import { useBalance } from "@/utils/fetchBalance"; // Import the improved hook
@@ -94,12 +93,18 @@ export default function StakeForm({
   const isLoading = isWriteLoading || isTransactionLoading;
 
   const isStaking = activeTab === "stake";
-  const fromLabel = isStaking ? "Amount to Stake" : "Amount to Unstake";
-  const toLabel = isStaking
-    ? "Amount to Receive (xGAS)"
-    : "Amount to Receive (GAS)";
-  const fromPlaceholder = isStaking ? "GAS" : "xGAS";
-  const toPlaceholder = isStaking ? "xGAS" : "GAS";
+  // New constants for swapping based on isStaking
+  const userGasBalance = {
+    balance: isStaking ? gasBalance : xGasBalance,
+    label: isStaking ? "Amount to Stake" : "Amount to Unstake",
+    placeholder: isStaking ? "GAS" : "xGAS",
+  };
+
+  const userXGasBalance = {
+    balance: isStaking ? xGasBalance : gasBalance,
+    label: isStaking ? "Amount to Receive (xGAS)" : "Amount to Receive (GAS)",
+    placeholder: isStaking ? "xGAS" : "GAS",
+  };
 
   return (
     <Form {...form}>
@@ -110,7 +115,7 @@ export default function StakeForm({
           render={({ field }) => (
             <FormItem>
               <FormLabel className="text-base font-semibold pl-1">
-                {fromLabel}
+                {userGasBalance.label}
               </FormLabel>
               <FormControl>
                 <Input
@@ -125,13 +130,14 @@ export default function StakeForm({
                   }}
                   className="rounded-full no-spinner p-6"
                   icon={<IconSparkles stroke={2} />}
-                  placeholderText={fromPlaceholder}
+                  placeholderText={userGasBalance.placeholder}
                 />
               </FormControl>
               <div className="h-2" />
               <div className="flex justify-between pl-1">
                 <FormDescription className="opacity-50">
-                  BALANCE: {parseFloat(gasBalance).toFixed(2)} {fromPlaceholder}
+                  BALANCE: {parseFloat(userGasBalance.balance).toFixed(2)}{" "}
+                  {userGasBalance.placeholder}{" "}
                 </FormDescription>
                 <div className="flex items-center gap-3">
                   <Button
@@ -140,7 +146,8 @@ export default function StakeForm({
                     className="bg-[#79FFB8] text-black"
                     onClick={() => {
                       const maxAmount =
-                        Math.floor(parseFloat(gasBalance) * 10) / 20;
+                        Math.floor(parseFloat(userGasBalance.balance) * 10) /
+                        20;
                       form.setValue("amount", Math.max(1, maxAmount));
                     }}
                   >
@@ -152,7 +159,8 @@ export default function StakeForm({
                     className="bg-[#79FFB8] text-black"
                     onClick={() => {
                       const maxAmount =
-                        Math.floor(parseFloat(gasBalance) * 10) / 10;
+                        Math.floor(parseFloat(userGasBalance.balance) * 10) /
+                        10;
                       form.setValue("amount", Math.max(1, maxAmount));
                     }}
                   >
@@ -175,7 +183,7 @@ export default function StakeForm({
           render={({ field }) => (
             <FormItem>
               <FormLabel className="text-base font-semibold pl-1">
-                {toLabel}
+                {userXGasBalance.label}
               </FormLabel>
               <FormControl>
                 <Input
@@ -185,12 +193,13 @@ export default function StakeForm({
                   onChange={(e) => field.onChange(parseFloat(e.target.value))}
                   className="rounded-full no-spinner p-6"
                   icon={<IconSparkles stroke={2} />}
-                  placeholderText={toPlaceholder}
+                  placeholderText={userXGasBalance.placeholder}
                 />
               </FormControl>
               <div className="h-2" />
-              <FormDescription>
-                BALANCE: {parseFloat(xGasBalance).toFixed(2)} {toPlaceholder}
+              <FormDescription className="opacity-50">
+                BALANCE: {parseFloat(userXGasBalance.balance).toFixed(2)}{" "}
+                {userXGasBalance.placeholder}
               </FormDescription>
               <FormMessage />
             </FormItem>

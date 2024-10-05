@@ -70,7 +70,7 @@ export default function Stake({ xGasToGasRatio }: StakeProps) {
           />
           <div className="h-[1px] w-full bg-white" />
           <ListItem
-            label="Liquid staked"
+            label="Your Liquid staked"
             icon={IconSparkles}
             value={
               isXGasLoading
