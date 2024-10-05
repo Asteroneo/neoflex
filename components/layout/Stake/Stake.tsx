@@ -10,6 +10,7 @@ import {
 } from "@tabler/icons-react";
 import StakeTab from "./StakeTab";
 import { useBalance } from "@/utils/fetchBalance"; // Import the improved hook
+import { useContractData } from "@/contexts/ContractDataContext";
 
 type TListItem = {
   icon: TablerIcon;
@@ -21,7 +22,7 @@ interface StakeProps {
   xGasToGasRatio: string | null;
 }
 
-export default function Stake({ xGasToGasRatio }: StakeProps) {
+export default function Stake() {
   const {
     balance: gasBalance,
     isLoading: isGasLoading,
@@ -33,10 +34,12 @@ export default function Stake({ xGasToGasRatio }: StakeProps) {
     error: xGasError,
   } = useBalance(process.env.NEXT_PUBLIC_XGAS_ADDRESS as `0x${string}`); // Ensure the address is in the correct format
 
+  const { xGasToGasRatio } = useContractData();
+
   return (
     <div className="max-w-7xl min-w-[1100px] bg-opacity-50 rounded-3xl shadow-lg overflow-hidden flex gap-3 border-2 border-white border-opacity-30">
       <div className="w-1/2 relative before:absolute before:top-0 before:bottom-0 before:right-0 before:w-px before:bg-gradient-to-b before:from-transparent before:via-white before:to-transparent before:opacity-50">
-        <StakeTab xGasToGasRatio={xGasToGasRatio} />
+        <StakeTab />
       </div>
 
       <div className="w-1/2 p-10 ">

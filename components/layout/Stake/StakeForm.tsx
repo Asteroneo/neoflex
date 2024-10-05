@@ -17,6 +17,7 @@ import { IconArrowDown, IconSparkles } from "@tabler/icons-react";
 import { useSmartContract } from "@/helpers/useCoreContract";
 import { useBalance } from "@/utils/fetchBalance";
 import { toast } from "react-hot-toast";
+import { useContractData } from "@/contexts/ContractDataContext";
 
 type TStakeFormProps = {
   activeTab: string;
@@ -30,14 +31,13 @@ const formSchema = z.object({
     .multipleOf(0.1, { message: "Amount must be a multiple of 0.1" }),
 });
 
-export default function StakeForm({
-  activeTab,
-  xGasToGasRatio,
-}: TStakeFormProps) {
+export default function StakeForm({ activeTab }: TStakeFormProps) {
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: { amount: 1 },
   });
+
+  const { totalStaked, xGasToGasRatio } = useContractData();
 
   const amount = form.watch("amount");
 
@@ -183,8 +183,8 @@ export default function StakeForm({
         />
         <div className="space-y-2 mb-8">
           <div className="flex justify-between text-sm font-extralight">
-            <span className="text-gray-400">Transaction Cost</span>
-            <span className="font-medium">14,103.281212 EUCL</span>
+            <span className="text-gray-400">Total Staked</span>
+            <span className="font-medium">{totalStaked} GAS</span>
           </div>
           <div className="flex justify-between text-sm font-extralight">
             <span className="text-gray-400">Redemption Rate</span>

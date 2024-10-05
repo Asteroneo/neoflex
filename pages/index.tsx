@@ -10,23 +10,27 @@ import Sidebar from "@/components/layout/Sidebar";
 import Stake from "@/components/layout/Stake/Stake";
 import { Toaster } from "react-hot-toast";
 import { GetServerSideProps } from "next";
-import { getGasToXGasRatio, getXGasToGasRatio } from "@/utils/getContractData";
+import { getTotalStaked, getXGasToGasRatio } from "@/utils/getContractData";
+import { ContractDataProvider } from "@/contexts/ContractDataContext";
 
 export const getServerSideProps: GetServerSideProps = async () => {
   const xGasToGasRatio = await getXGasToGasRatio();
+  const totalStaked = await getTotalStaked();
 
   return {
     props: {
       xGasToGasRatio,
+      totalStaked,
     },
   };
 };
 
 interface HomeProps {
   xGasToGasRatio: string | null;
+  totalStaked: string | null;
 }
 
-export default function Home({ xGasToGasRatio }: HomeProps) {
+export default function Home({ xGasToGasRatio, totalStaked }: HomeProps) {
   const origin =
     typeof window !== "undefined" && window.location.origin
       ? window.location.origin
@@ -59,19 +63,21 @@ export default function Home({ xGasToGasRatio }: HomeProps) {
   ];
 
   return (
-    <div className="h-screen flex overflow-hidden">
-      <Sidebar />
+    <ContractDataProvider value={{ xGasToGasRatio, totalStaked }}>
+      <div className="h-screen flex overflow-hidden">
+        <Sidebar />
 
-      <div className="flex flex-col flex-1 overflow-auto">
-        <div className="flex justify-end pt-6 pr-6">
-          <ConnectButton />
-        </div>
+        <div className="flex flex-col flex-1 overflow-auto">
+          <div className="flex justify-end pt-6 pr-6">
+            <ConnectButton />
+          </div>
 
-        <div className="flex-1 flex items-center justify-center">
-          <Stake xGasToGasRatio={xGasToGasRatio} />
+          <div className="flex-1 flex items-center justify-center">
+            <Stake />
+          </div>
         </div>
+        <Toaster position="bottom-right" />
       </div>
-      <Toaster position="bottom-right" />
-    </div>
+    </ContractDataProvider>
   );
 }

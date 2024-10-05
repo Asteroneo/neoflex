@@ -50,3 +50,24 @@ export async function getXGasToGasRatio() {
     return null;
   }
 }
+
+export async function getTotalStaked() {
+  const client = createPublicClient({
+    chain: neoxTestnet,
+    transport: http(),
+  });
+
+  try {
+    console.log("Fetching total staked amount serverside");
+    const data = await client.readContract({
+      address: CONTRACT_ADDRESS,
+      abi: NeoFlexCoreABI.abi,
+      functionName: "totalStaked",
+    });
+
+    return data ? formatEther(data as bigint) : null;
+  } catch (error) {
+    console.error("Error fetching total staked amount server:", error);
+    return null;
+  }
+}

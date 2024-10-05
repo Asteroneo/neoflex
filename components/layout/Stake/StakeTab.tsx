@@ -9,7 +9,7 @@ interface StakeTabProps {
   xGasToGasRatio: string | null;
 }
 
-export default function StakeTab({ xGasToGasRatio }: StakeTabProps) {
+export default function StakeTab() {
   const [activeTab, setActiveTab] = useState("stake");
 
   return (
@@ -45,11 +45,11 @@ export default function StakeTab({ xGasToGasRatio }: StakeTabProps) {
       </TabsList>
       <TabsContent value="stake">
         <div className="h-6" />
-        <StakeForm activeTab={activeTab} xGasToGasRatio={xGasToGasRatio} />
+        <StakeForm activeTab={activeTab} />
       </TabsContent>
       <TabsContent value="unstake">
         <div className="h-6" />
-        <StakeForm activeTab={activeTab} xGasToGasRatio={xGasToGasRatio} />
+        <StakeForm activeTab={activeTab} />
       </TabsContent>
     </Tabs>
   );
