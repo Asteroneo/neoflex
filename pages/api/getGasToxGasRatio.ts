@@ -4,7 +4,7 @@
 import { NextApiRequest, NextApiResponse } from "next";
 import { createPublicClient, http } from "viem";
 import { mainnet } from "viem/chains";
-import NeoFlexCoreABI from "@/contracts/artifacts/contracts/NeoFlexCore.sol/NeoFlexCore.json";
+import NeoFlexCoreABI from "@/abi/NeoFlexCore.json";
 
 const CONTRACT_ADDRESS = process.env.NEXT_PUBLIC_CORE_ADDRESS as `0x${string}`;
 

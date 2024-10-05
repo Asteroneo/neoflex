@@ -1,7 +1,7 @@
 // File: /utils/getContractData.ts
 
 import { createPublicClient, http, parseEther } from "viem";
-import NeoFlexCoreABI from "@/contracts/artifacts/contracts/NeoFlexCore.sol/NeoFlexCore.json";
+import NeoFlexCoreABI from "@/abi/NeoFlexCore.json";
 import { neoxTestnet } from "./chains/neoxChain";
 import { formatEther } from "viem";
 
