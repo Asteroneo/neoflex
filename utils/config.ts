@@ -5,7 +5,8 @@ export const WALLET_CONNECT_PROJECT_ID =
   process.env.NEXT_PUBLIC_WALLET_CONNECT_PROJECT_ID || "";
 
 export const SITE_NAME = "NeoFlex";
-export const SITE_DESCRIPTION = "The best Liquid Staking protocol on NEOX";
+export const SITE_MOTTO = "Liquid Staking";
+export const SITE_DESCRIPTION = "The optimized Liquid Staking protocol on NEOX";
 export const SITE_URL = "https://neoflex.app";
 
 export const SOCIAL_TWITTER = "Envoy_1084";
