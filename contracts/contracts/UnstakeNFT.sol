@@ -1,14 +1,13 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.1;
 
-import "@openzeppelin/contracts/token/ERC721/ERC721.sol";
+import "@openzeppelin/contracts/token/ERC721/extensions/ERC721Enumerable.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/utils/Counters.sol";
 
-contract UnstakeNFT is ERC721, Ownable {
+contract UnstakeNFT is ERC721Enumerable, Ownable {
     using Counters for Counters.Counter;
     Counters.Counter private _tokenIds;
-
     address private _operator;
 
     struct UnstakeRequest {
@@ -18,15 +17,14 @@ contract UnstakeNFT is ERC721, Ownable {
     }
 
     mapping(uint256 => UnstakeRequest) public unstakeRequests;
-
     event OperatorTransferred(address indexed previousOperator, address indexed newOperator);
 
     constructor() ERC721("UnstakeNFT", "UNFT") {
-        _operator = _msgSender();
+        _operator = msg.sender;
     }
 
     modifier onlyOperator() {
-        require(_msgSender() == _operator, "UnstakeNFT: caller is not the operator");
+        require(msg.sender == _operator, "UnstakeNFT: caller is not the operator");
         _;
     }
 
@@ -44,13 +42,12 @@ contract UnstakeNFT is ERC721, Ownable {
         _tokenIds.increment();
         uint256 newTokenId = _tokenIds.current();
         _safeMint(user, newTokenId);
-        
+       
         unstakeRequests[newTokenId] = UnstakeRequest({
             amount: amount,
             mintTime: block.timestamp,
             user: user
         });
-
         return newTokenId;
     }
 
@@ -61,5 +58,20 @@ contract UnstakeNFT is ERC721, Ownable {
 
     function getUnstakeRequest(uint256 tokenId) external view returns (UnstakeRequest memory) {
         return unstakeRequests[tokenId];
+    }
+
+    // Optimized function to get all tokens owned by a user
+    function getUserTokens(address user) external view returns (uint256[] memory, UnstakeRequest[] memory) {
+        uint256 balance = balanceOf(user);
+        uint256[] memory tokenIds = new uint256[](balance);
+        UnstakeRequest[] memory requests = new UnstakeRequest[](balance);
+        
+        for (uint256 i = 0; i < balance; i++) {
+            uint256 tokenId = tokenOfOwnerByIndex(user, i);
+            tokenIds[i] = tokenId;
+            requests[i] = unstakeRequests[tokenId];
+        }
+        
+        return (tokenIds, requests);
     }
 }

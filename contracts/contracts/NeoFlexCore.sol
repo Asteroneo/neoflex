@@ -27,6 +27,7 @@ contract NeoFlexCore is ReentrancyGuard, Pausable, Ownable {
     event ValidatorUpdated(address indexed newValidator);
     event RewardsHarvested(uint256 amount);
     event GovernanceContractUpdated(address indexed oldGovernance, address indexed newGovernance);
+    event UnstakeNFTUpdated(address indexed oldUnstakeNFT, address indexed newUnstakeNFT);
     event DebugLog(string message, uint256 value);
     event ErrorLog(string message, string reason);
 
@@ -192,6 +193,16 @@ contract NeoFlexCore is ReentrancyGuard, Pausable, Ownable {
         governanceContract = INeoXGovernance(_newGovernanceContract);
 
         emit GovernanceContractUpdated(oldGovernanceContract, _newGovernanceContract);
+    }
+
+    function updateUnstakeNFT(address _newUnstakeNFT) external onlyOwner {
+        require(_newUnstakeNFT != address(0), "New UnstakeNFT address cannot be zero");
+        require(_newUnstakeNFT != address(unstakeNFT), "New address must be different from current");
+
+        address oldUnstakeNFT = address(unstakeNFT);
+        unstakeNFT = UnstakeNFT(_newUnstakeNFT);
+
+        emit UnstakeNFTUpdated(oldUnstakeNFT, _newUnstakeNFT);
     }
 
     function pause() external onlyOwner {

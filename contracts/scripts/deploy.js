@@ -11,7 +11,7 @@ async function main() {
 
   // Calculate gas price
   const feeData = await hre.ethers.provider.getFeeData();
-  const gasPrice = feeData.maxFeePerGas.mul(2); // Double the suggested gas price to ensure the transaction goes through
+  const gasPrice = feeData.maxFeePerGas * 1n; // Double the suggested gas price
   console.log("Using gas price:", gasPrice.toString());
 
   // Common deployment options
@@ -19,11 +19,8 @@ async function main() {
     gasPrice: gasPrice,
   };
 
-  // Deploy MockGovernance
-  const MockGovernance = await hre.ethers.getContractFactory("MockGovernance");
-  const mockGovernance = await MockGovernance.deploy(deployOptions);
-  await mockGovernance.waitForDeployment();
-  console.log("MockGovernance deployed to:", await mockGovernance.getAddress());
+  const GovernanceAddress = "0x1212000000000000000000000000000000000001";
+  const ValidatorAddress = "0x84a32405966791d077811d4E9f21B43b1E7dd911";
 
   // Deploy XGASToken
   const XGASToken = await hre.ethers.getContractFactory("XGASToken");
@@ -40,8 +37,8 @@ async function main() {
   // Deploy NeoFlexCore
   const NeoFlexCore = await hre.ethers.getContractFactory("NeoFlexCore");
   const neoFlexCore = await NeoFlexCore.deploy(
-    await mockGovernance.getAddress(),
-    deployer.address, // Using deployer as the initial validator
+    GovernanceAddress,
+    ValidatorAddress,
     await xGasToken.getAddress(),
     await unstakeNFT.getAddress(),
     deployOptions

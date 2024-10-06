@@ -291,7 +291,9 @@ export default function StakeForm({ activeTab }: TStakeFormProps) {
           <div className="space-y-2 mb-8">
             <div className="flex justify-between text-sm font-extralight">
               <span className="text-gray-400">Total Staked</span>
-              <span className="font-medium">{totalStaked} GAS</span>
+              <span className="font-medium">
+                {totalStaked ? parseFloat(totalStaked).toFixed(2) : "0.00"} GAS
+              </span>
             </div>
             <div className="flex justify-between text-sm font-extralight">
               <span className="text-gray-400">Redemption Rate</span>
