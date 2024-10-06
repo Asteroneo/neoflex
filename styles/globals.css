@@ -41,6 +41,7 @@ body {
   border-radius: 25px;
   color: #070a11;
   font-weight: 500;
+  width: 100%;
 }
 .no-spinner::-webkit-outer-spin-button,
 .no-spinner::-webkit-inner-spin-button {
