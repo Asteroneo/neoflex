@@ -81,7 +81,7 @@ export default function WithdrawTable() {
         <div className="rounded-xl overflow-hidden">
           <Table>
             <TableHeader>
-              <TableRow className="bg-transparent">
+              <TableRow className="bg-[transparent]">
                 <TableHead>Event Type</TableHead>
                 <TableHead>Amount</TableHead>
                 <TableHead>Unlocking Time</TableHead>
@@ -104,7 +104,9 @@ export default function WithdrawTable() {
                 return (
                   <TableRow key={index} className="h-14">
                     <TableCell className="font-medium">xGas Withdraw</TableCell>
-                    <TableCell>{amountInEther} GAS</TableCell>
+                    <TableCell className="font-extrabold text-[#79FFB8]">
+                      {amountInEther} GAS
+                    </TableCell>
                     <TableCell>{unlockingTime.toLocaleString()}</TableCell>
                     <TableCell className="flex items-center justify-start h-fit">
                       <div className="flex items-center">

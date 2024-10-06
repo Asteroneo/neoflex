@@ -27,17 +27,21 @@ type TStakeFormProps = {
   activeTab: string;
 };
 
-const formSchema = z.object({
-  amount: z
-    .number()
-    .min(1, { message: "Amount must be at least 1" })
-    .multipleOf(0.1, { message: "Amount must be a multiple of 0.1" }),
-});
-
 export default function StakeForm({ activeTab }: TStakeFormProps) {
+  const isStaking = activeTab === "stake";
+
+  const formSchema = z.object({
+    amount: z
+      .number()
+      .min(isStaking ? 1 : 0.1, {
+        message: `Amount must be at least ${isStaking ? "1" : "0.1"}`,
+      })
+      .multipleOf(0.1, { message: "Amount must be a multiple of 0.1" }),
+  });
+
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
-    defaultValues: { amount: 1 },
+    defaultValues: { amount: isStaking ? 1 : 0.1 },
   });
 
   const { totalStaked, xGasToGasRatio, gasToXGasRatio } = useContractData();
@@ -45,7 +49,6 @@ export default function StakeForm({ activeTab }: TStakeFormProps) {
 
   const { useDeposit, useRequestUnstake } = useSmartContract();
   const { useXGasAllowance, useApproveXGas } = useXGasContract();
-  const isStaking = activeTab === "stake";
   const [showUnstakePopup, setShowUnstakePopup] = useState(false);
 
   const {
@@ -203,7 +206,7 @@ export default function StakeForm({ activeTab }: TStakeFormProps) {
                 <FormControl>
                   <Input
                     type="number"
-                    min="1"
+                    min={isStaking ? "1" : "0.1"}
                     step="0.01"
                     {...field}
                     onChange={(e) => {
