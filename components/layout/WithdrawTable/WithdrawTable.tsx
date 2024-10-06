@@ -74,7 +74,7 @@ export default function WithdrawTable() {
         <div className="w-full h-max bg-[#1a1b1f] bg-opacity-50 rounded-lg flex flex-col items-center justify-center p-8 min-h-[450px]">
           <SquareDashedMousePointer className="w-16 h-16 mb-4 text-gray-400" />
           <p className="text-xl text-gray-400">
-            You don't have any withdraw request.
+            You don&apos;t have any withdraw request.
           </p>
         </div>
       ) : (
