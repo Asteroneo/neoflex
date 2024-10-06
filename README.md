@@ -1,60 +1,108 @@
-Welcome to the [boilr3](https://github.com/Envoy-VC/boilr3), a comprehensive starting point for building decentralized applications using [Next.js](https://nextjs.org/), [RainbowKit](https://www.rainbowkit.com/) wallet authentication, [Tailwind CSS](https://tailwindcss.com/) styling, and [WAGMI](https://wagmi.sh/) React Hooks for Ethereum.
+# NeoFlex: Revolutionizing Liquid Staking on Neo X 🚀
 
----
+## 📚 Project Overview
 
-## Getting Started
+NeoFlex is an innovative liquid staking solution designed for the Neo X blockchain. Our platform allows users to stake their GAS tokens while maintaining liquidity through our xGAS tokens. This enables participants to earn staking rewards while still having the flexibility to use their assets in other DeFi applications.
 
-To use this template, follow these steps:
+## 🔍 The Problem
+
+Currently, Neo X requires users to lock up their GAS tokens to participate in network governance and earn rewards. This creates an opportunity cost, as staked assets cannot be used elsewhere in the ecosystem. Moreover, the process of selecting validators and managing stakes can be complex for average users.
+
+## 💡 Our Solution
+
+NeoFlex introduces a user-friendly liquid staking platform that simplifies the staking process and unlocks the potential of staked assets. Here's how it works:
+
+1. Users deposit GAS into the NeoFlex smart contract.
+2. They receive xGAS tokens representing their staked GAS plus accrued rewards.
+3. NeoFlex manages the staking process, optimizing for the best rewards.
+4. Users can freely trade or use xGAS in other DeFi applications.
+5. At any time, users can burn their xGAS to retrieve their original GAS plus rewards.
+
+## 🗓 Roadmap
+
+1. **Phase 1: MVP Launch** (End of Hackathon)
+
+   - Basic deposit/withdraw functionality
+   - Integration with existing Neo X validators
+
+2. **Phase 2: Enhanced Features** (Q4 2024)
+
+   - Implement advanced staking strategies
+   - Launch governance token for protocol decisions
+
+3. **Phase 3: Ecosystem Expansion** (Q1 2025)
+
+   - Integrate xGAS with other DeFi protocols on Neo X
+   - Launch our own validator node to increase validator numbers
+   - Develop cross-chain bridges for xGAS
+
+4. **Phase 4: Multi-Chain Expansion** (Q2 2025)
+   - Extend NeoFlex to other compatible blockchains
+   - Implement cross-chain liquid staking
+
+## 🚀 Getting Started
+
+### Prerequisites
+
+- Node.js (v14 or later)
+- Yarn package manager
+
+### Installation
 
 1. Clone the repository:
-   ```bash
-   git clone https://github.com/Envoy-VC/boilr3.git
-   ```
-2. Change to the project directory:
-   ```bash
-   cd boilr3
-   ```
-3. Install the dependencies:
 
-   ```bash
-   npm install
+   ```
+   git clone https://github.com/your-username/neoflex.git
+   cd neoflex
    ```
 
-4. Start the development server:
-   ```bash
-   npm run dev
-   # or
-   yarn dev
-   # or
-   pnpm dev
+2. Install dependencies:
+
+   ```
+   yarn install
    ```
 
-Now you can open your browser and navigate to [http://localhost:3000](http://localhost:3000) to see the boilerplate in action.
+3. Create a `.env` file in the root directory with the following content:
 
-You can start editing the page by modifying `pages/index.tsx`. The page auto-updates as you edit the file.
+   ```
+   NEXT_PUBLIC_WALLET_CONNECT_PROJECT_ID=
+   NEXT_PUBLIC_NFT_ADDRESS=
+   NEXT_PUBLIC_XGAS_ADDRESS=
+   NEXT_PUBLIC_CORE_ADDRESS=
+   NEXT_PUBLIC_API_URL=
+   ```
 
----
+   Fill in the appropriate values for each variable.
 
-## Features
+4. Run the development server:
 
-- **Next.js Integration** - This boilerplate is built on top of Next.js, a popular React-based framework for building server-side rendered applications. With Next.js, you can easily create dynamic, SEO-friendly pages and leverage powerful features like automatic code splitting and serverless functions to optimize your app's performance.
+   ```
+   yarn run dev
+   ```
 
-- **Secure Wallet Authentication** - Authenticate users securely with RainbowKit, a powerful and easy-to-use wallet authentication library for Ethereum-based dApps. With RainbowKit, you can easily integrate wallet authentication into your app, without having to worry about the complexities of managing private keys or user accounts. RainbowKit supports a wide range of wallets, including MetaMask, WalletConnect, and more.
+5. Open [http://localhost:3000](http://localhost:3000) in your browser to see the application.
 
-- **Tailwind CSS Styling** - Effortlessly style your decentralized application with Tailwind CSS, a utility-first CSS framework. Tailwind CSS makes it easy to create beautiful, responsive UIs without writing custom CSS, allowing you to focus on building your app's functionality.
+### Smart Contracts
 
-- **WAGMI React Hooks for Ethereum** - WAGMI is a set of React Hooks designed to simplify Ethereum development. With WAGMI, you can easily interact with Ethereum smart contracts, manage user accounts, and handle transactions, all within your React components.
+The smart contracts are located in the `contracts/` folder. They use the Hardhat framework for development and testing.
 
----
+## 🛠 Tech Stack
 
-## Contributing
+- Next.js framework
+- Tailwind CSS for styling
+- RainbowKit and wagmi for Web3 integration
+- Radix UI for user interface components
 
-We welcome contributions to improve and expand this boilerplate. To contribute, please submit a pull request with your proposed changes, and we'll review it as soon as possible.
+## 🤝 Contributing
 
----
+We welcome contributions to NeoFlex! Please see our [CONTRIBUTING.md](CONTRIBUTING.md) file for details on how to get started.
 
-## License
+## 📄 License
 
-This project is licensed under the MIT License. See the [LICENSE](./LICENSE) file for more information.
+This project is licensed under the MIT License - see the [LICENSE.md](LICENSE.md) file for details.
 
----
+## 🙏 Acknowledgments
+
+- The Neo X community for their support and feedback
+- OpenZeppelin for their secure smart contract libraries
+- All contributors and testers who have helped shape NeoFlex
